@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clinical Precision · BreathBand®</title>
+<link rel="stylesheet" href="../../shared/fonts/fonts.css">
+<link rel="stylesheet" href="../../shared/frame.css">
+<style>
+/* =====================================================================
+   01 Clinical Precision: tokens (map 1:1 onto a BreathbandTheme later)
+   ===================================================================== */
+:root {
+  /* colour */
+  --paper: #F7F8F6;
+  --surface: #FFFFFF;
+  --rule: #DDE1DE;
+  --rule-strong: #C9CFCB;
+  --grid-fine: #EDF0EE;
+  --grid-major: #DCE1DD;
+  --ink: #141A1F;
+  --ink-2: #56606A;
+  --ink-3: #8A939B;          /* pacer line, disabled marks (non-text) */
+  --green: #1F7A55;          /* in range, calibrated, primary go */
+  --green-tint: #E4F0EA;
+  --ochre: #B7791F;          /* low score band; never the inhale red */
+  --ochre-ink: #8A5A12;
+  --inhale: #C2362B;
+  --inhale-tint: #F6E1DE;
+  --exhale: #2A58A6;
+  --exhale-tint: #E1E8F4;
+  --scrim: rgba(20, 26, 31, .34);
+
+  /* type */
+  --font-display: 'Instrument Serif', 'Times New Roman', serif;
+  --font-ui: 'Instrument Sans', system-ui, sans-serif;
+  --fs-display: 34px;
+  --fs-title: 22px;
+  --fs-readout: 40px;
+  --fs-body: 15px;
+  --fs-label: 13px;
+  --fs-meta: 12px;
+
+  /* shape + space (4-pt) */
+  --radius: 4px;
+  --radius-sheet: 10px;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px; --s12: 48px;
+  --hairline: 1px;
+
+  /* elevation: none at rest; one shadow for the floating calibration sheet */
+  --shadow-sheet: 0 -6px 24px rgba(20, 26, 31, .10);
+
+  /* motion (Flutter: Curves.easeOut / Curves.easeInOutSine) */
+  --dur-fast: 160ms;
+  --dur-base: 200ms;
+  --ease-out: cubic-bezier(.22, .61, .36, 1);
+  --ease-breath: cubic-bezier(.37, 0, .63, 1);
+
+  /* frame */
+  --frame-ground: var(--paper);
+  --status-ink: var(--ink);
+  --page-ground: #E9ECEA;
+  --page-ink-2: var(--ink-2);
+  --icon-stroke: 1.6;
+  --icon-cap: square;
+  --icon-join: miter;
+}
+
+::selection { background: var(--exhale-tint); color: var(--ink); }
+figure.bb-shot { margin: 0; }
+a { color: inherit; }
+body { font-family: var(--font-ui); color: var(--ink); }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+
+/* ---------------------------------------------------------- page header */
+.dir-head { max-width: 1720px; margin-bottom: 36px; display: grid; grid-template-columns: 1fr auto; gap: 24px 48px; align-items: end; }
+.dir-head h1 { font: 400 56px/1 var(--font-display); margin: 0 0 10px; letter-spacing: -0.01em; }
+.dir-head p { margin: 0; font-size: 18px; color: var(--ink-2); max-width: 60ch; }
+.dir-meta { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+.swatches { display: flex; gap: 0; border: 1px solid var(--rule); background: var(--surface); }
+.swatch { width: 92px; padding: 8px; font-size: 12px; color: var(--ink-2); border-left: 1px solid var(--rule); }
+.swatch:first-child { border-left: 0; }
+.swatch i { display: block; height: 28px; border-radius: 2px; margin-bottom: 6px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.swatch b { display: block; font-weight: 600; color: var(--ink); }
+.dir-tags { font-size: 14px; color: var(--ink-2); }
+.dir-tags b { color: var(--ink); font-weight: 600; }
+
+/* ---------------------------------------------------------- shared screen parts */
+.bb-phone { font-family: var(--font-ui); color: var(--ink); font-size: var(--fs-body); }
+.scr { position: absolute; inset: 0; padding: 54px 0 0; display: flex; flex-direction: column; }
+.pad { padding-left: var(--s4); padding-right: var(--s4); }
+.label { font-size: var(--fs-label); color: var(--ink-2); font-weight: 500; }
+.meta { font-size: var(--fs-meta); color: var(--ink-2); }
+.panel { background: var(--surface); border: var(--hairline) solid var(--rule); border-radius: var(--radius); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 var(--s4); border-radius: var(--radius);
+  font-size: 15px; font-weight: 600; border: 1px solid var(--ink); background: var(--ink); color: #fff;
+  cursor: pointer; transition: transform var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.btn:active { transform: scale(.98); }
+.btn.ghost { background: var(--surface); color: var(--ink); border-color: var(--rule-strong); }
+.btn.go { background: var(--green); border-color: var(--green); }
+.btn:focus-visible, .tab:focus-visible, .chip:focus-visible, .iconbtn:focus-visible { outline: 2px solid var(--exhale); outline-offset: 2px; }
+.iconbtn { width: 44px; height: 44px; display: inline-grid; place-items: center; border: 1px solid var(--rule); background: var(--surface); border-radius: var(--radius); color: var(--ink); }
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
+.band { display: inline-block; width: 7px; height: 7px; border-radius: 1px; margin-right: 5px; vertical-align: 1px; }
+.band.high, .band.good { background: var(--green); }
+.band.mid { background: var(--ink-3); }
+.band.low { background: var(--ochre); }
+.link { color: var(--ink); font-weight: 600; font-size: var(--fs-label); text-decoration: underline; text-decoration-color: var(--rule-strong); text-underline-offset: 3px; display: inline-flex; align-items: center; gap: 5px; min-height: 44px; }
+.topbar { height: 48px; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 15px; letter-spacing: .01em; }
+.brand sup { font-size: 9px; font-weight: 500; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--rule-strong); display: grid; place-items: center; font-size: 14px; font-weight: 600; background: var(--surface); }
+
+/* tab bar */
+.tabbar { margin-top: auto; height: 83px; padding-bottom: 34px; background: var(--surface); border-top: 1px solid var(--rule); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 500; color: var(--ink-2); background: none; border: 0; }
+.tab.on { color: var(--ink); font-weight: 600; }
+.tab.on::after { content: ""; width: 18px; height: 2px; background: var(--ink); margin-top: 1px; }
+
+/* ---------------------------------------------------------- 1 home */
+.greet { padding-top: var(--s2); }
+.greet h2 { font: 400 var(--fs-display)/1.05 var(--font-display); margin: 0; letter-spacing: -0.01em; }
+.greet p { margin: 6px 0 0; color: var(--ink-2); font-size: var(--fs-body); }
+.sys { margin-top: var(--s4); display: grid; grid-template-columns: 1fr 1fr; }
+.sys > div { padding: 10px var(--s3); display: flex; gap: 10px; align-items: flex-start; }
+.sys > div + div { border-left: 1px solid var(--rule); }
+.sys svg { flex: none; margin-top: 1px; color: var(--ink-2); }
+.sys .v { font-size: 15px; font-weight: 600; line-height: 1.25; }
+.latest { margin-top: var(--s3); padding: var(--s3) var(--s4) var(--s2); }
+.row-sb { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.readout { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; }
+.readout .big { font-size: var(--fs-readout); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.readout .of { font-size: 15px; color: var(--ink-2); }
+.readout .word { font-size: 17px; font-weight: 600; }
+.delta { font-size: var(--fs-label); color: var(--ink-2); margin-left: auto; text-align: right; line-height: 1.3; }
+.delta b { color: var(--green); font-weight: 600; }
+.trend { display: block; margin-top: 6px; }
+.trend .gl { stroke: var(--grid-major); stroke-width: 1; }
+.trend .gt, .trend .xt { font: 500 12px var(--font-ui); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.trend .ln { stroke: var(--ink); stroke-width: 1.5; fill: none; }
+.trend .pt { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.trend .pt.last { fill: var(--ink); }
+.quick { margin-top: var(--s3); display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
+.quick .btn { flex-direction: column; gap: 0; min-height: 56px; line-height: 1.2; }
+.quick .btn small { font-size: 12px; font-weight: 500; opacity: .8; }
+.list-head { margin-top: var(--s4); display: flex; justify-content: space-between; align-items: center; height: 28px; }
+.list-head h3 { font-size: 15px; margin: 0; font-weight: 600; }
+.rows { border-top: 1px solid var(--rule); }
+.srow { display: grid; grid-template-columns: 1fr auto 16px; align-items: center; gap: 10px; min-height: 54px; border-bottom: 1px solid var(--rule); }
+.srow .t { font-size: 15px; font-weight: 600; }
+.srow .s { font-size: var(--fs-label); color: var(--ink-2); margin-top: 1px; }
+.srow .v { text-align: right; font-size: 15px; font-weight: 600; }
+.srow .v small { display: block; font-size: var(--fs-label); font-weight: 500; color: var(--ink-2); }
+.srow svg { color: var(--ink-3); }
+
+/* ---------------------------------------------------------- 2 locked */
+.locked-bg { filter: grayscale(1); opacity: .5; pointer-events: none; }
+.lockbar { margin-top: var(--s3); display: flex; align-items: center; gap: 10px; padding: 10px var(--s3); border: 1px dashed var(--rule-strong); border-radius: var(--radius); color: var(--ink); font-size: 14px; font-weight: 600; background: var(--surface); }
+.ghostval { color: var(--ink-3); }
+.skel { height: 10px; background: var(--grid-major); border-radius: 2px; }
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 5; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 214px; z-index: 6; background: var(--surface); border-radius: var(--radius-sheet) var(--radius-sheet) 0 0; box-shadow: var(--shadow-sheet); padding: 8px var(--s4) 34px; display: flex; flex-direction: column; }
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--rule-strong); margin: 0 auto 10px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.steps li { list-style: none; font-size: 12px; color: var(--ink-2); font-weight: 500; padding-top: 7px; border-top: 3px solid var(--grid-major); }
+.steps li.on { color: var(--ink); font-weight: 600; border-top-color: var(--green); }
+.steps { padding: 0; margin: 0; }
+.sheet h2 { font: 400 28px/1.05 var(--font-display); margin: 14px 0 2px; }
+.sheet .sub { font-size: 15px; color: var(--ink-2); margin: 0; }
+.gauge { display: block; margin: 4px auto 0; }
+.gauge .trk { stroke: var(--grid-major); stroke-width: 10; fill: none; }
+.gauge .ok { stroke: var(--green); stroke-width: 10; fill: none; }
+.gauge .tk { stroke: var(--ink-3); stroke-width: 1; }
+.gauge .tk.maj { stroke: var(--ink); stroke-width: 1.5; }
+.gauge .needle { stroke: var(--ink); stroke-width: 2; }
+.gauge .hub { fill: var(--ink); }
+.gauge .end { font: 500 13px var(--font-ui); fill: var(--ink-2); }
+.gauge .tl { font: 500 12px var(--font-ui); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.inrange { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 6px; }
+.inrange .pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 8px; background: var(--green-tint); color: var(--green); font-weight: 600; font-size: 15px; border-radius: var(--radius); }
+.inrange .meta { font-size: 13px; }
+.instr { margin: 12px 0 0; padding: 0; counter-reset: s; border-top: 1px solid var(--rule); }
+.instr li { list-style: none; display: grid; grid-template-columns: 24px 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 15px; line-height: 1.35; }
+.instr li::before { counter-increment: s; content: counter(s); font-size: 13px; font-weight: 600; color: var(--ink-2); padding-top: 1px; font-variant-numeric: tabular-nums; }
+.instr li.done::before { content: "✓"; color: var(--green); }
+.instr li.now { font-weight: 600; }
+.next { margin-top: 10px; display: grid; grid-template-columns: 88px 1fr; gap: 12px; align-items: center; padding: 8px 10px; background: var(--paper); border-radius: var(--radius); }
+.next svg .w { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
+.next svg .m { stroke: var(--ink-3); stroke-dasharray: 2 2; }
+.next b { display: block; font-size: 14px; }
+.next span { font-size: 13px; color: var(--ink-2); line-height: 1.35; display: block; }
+.sheet .btn.go { margin-top: auto; width: 100%; min-height: 52px; font-size: 16px; }
+
+/* ---------------------------------------------------------- 3 live */
+.live-head { display: flex; align-items: center; justify-content: space-between; height: 52px; }
+.live-head h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.live-head .meta { font-size: 13px; }
+.soundbtn { display: inline-flex; align-items: center; gap: 6px; height: 44px; padding: 0 12px; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; }
+.clock { display: grid; grid-template-columns: 1fr 1fr; margin-top: 4px; }
+.clock > div:last-child { text-align: right; }
+.clock .v { font-size: 34px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; }
+.clock > div:last-child .v { color: var(--ink-2); font-weight: 500; }
+.ruler { margin-top: 8px; display: block; }
+.ruler .tr { fill: var(--grid-major); }
+.ruler .fl { fill: var(--ink); }
+.ruler .tk { stroke: var(--ink-2); stroke-width: 1; }
+.ruler .tl { font: 500 12px var(--font-ui); fill: var(--ink-2); }
+.dial { display: block; margin: 6px auto 0; }
+.dial .bez { fill: none; stroke: var(--rule); stroke-width: 1; }
+.dial .tk { stroke: var(--ink-3); stroke-width: 1; }
+.dial .tk.maj { stroke: var(--ink); stroke-width: 1.5; }
+.dial .arc-in { fill: none; stroke: var(--inhale); stroke-width: 3; }
+.dial .arc-out { fill: none; stroke: var(--exhale); stroke-width: 3; opacity: .35; }
+.dial .guide { fill: none; stroke: var(--rule-strong); stroke-width: 1; stroke-dasharray: 3 4; }
+.dial .user { fill: var(--inhale-tint); stroke: var(--inhale); stroke-width: 2; }
+.dial .pacer { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+.dial .cross { stroke: var(--ink-3); stroke-width: 1; }
+.dial .phase { fill: var(--ink); }
+.dial .lb { font: 600 12px var(--font-ui); }
+.dial .lb.in { fill: var(--inhale); }
+.dial .lb.out { fill: var(--exhale); }
+.dial .gl { font: 500 12px var(--font-ui); fill: var(--ink-2); }
+.cue { text-align: center; margin-top: 2px; }
+.cue h3 { font: 400 40px/1 var(--font-display); margin: 0; color: var(--ink); }
+.cue p { margin: 6px 0 0; font-size: 15px; color: var(--ink-2); }
+.legend { display: flex; gap: 14px; justify-content: center; font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+.legend i { display: inline-block; width: 14px; height: 0; vertical-align: middle; margin-right: 5px; }
+.legend .lp { border-top: 1.5px solid var(--ink); }
+.legend .lg { border-top: 1.5px dashed var(--rule-strong); }
+.legend .lu { border-top: 6px solid var(--inhale-tint); outline: 1.5px solid var(--inhale); height: 6px; border: 0; background: var(--inhale-tint); }
+.strip { margin-top: 10px; }
+.strip .hd { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+.controls { margin-top: auto; padding-bottom: 46px; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); }
+.controls .btn { min-height: 52px; }
+
+/* chart paper (shared by live strip + review) */
+.paper .gf { stroke: var(--grid-fine); stroke-width: 1; }
+.paper .gm { stroke: var(--grid-major); stroke-width: 1; }
+.paper .mid { stroke: var(--ink-2); stroke-width: 1; stroke-dasharray: 4 3; }
+.paper .pc { fill: none; stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 5 3; }
+.paper .ui { fill: none; stroke: var(--inhale); stroke-width: 1.5; }
+.paper .uo { fill: none; stroke: var(--exhale); stroke-width: 1.5; }
+.paper .ax { font: 600 12px var(--font-ui); }
+.paper .ax.in { fill: var(--inhale); }
+.paper .ax.out { fill: var(--exhale); }
+.paper .sc, .paper .tt { font: 500 12px var(--font-ui); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.paper .now { stroke: var(--ink); stroke-width: 1; }
+.paper .nowdot { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+.paper .win { fill: none; stroke: var(--ink); stroke-width: 1.5; }
+.paper .shade { fill: var(--paper); opacity: .78; }
+
+/* ---------------------------------------------------------- 4 review */
+.navbar { height: 44px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; }
+.navbar .back { text-decoration: none; display: inline-flex; align-items: center; gap: 2px; font-size: 15px; font-weight: 500; color: var(--ink); min-height: 44px; }
+.navbar h2 { margin: 0; font-size: 16px; font-weight: 600; }
+.navbar .r { justify-self: end; }
+.rmeta { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.rmeta b { color: var(--ink); font-weight: 600; font-size: 15px; }
+.hero { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: end; margin-top: 8px; }
+.hero .score { font: 400 64px/0.9 var(--font-display); letter-spacing: -0.02em; }
+.hero .score small { font: 500 17px var(--font-ui); color: var(--ink-2); letter-spacing: 0; margin-left: 2px; }
+.hero .what { padding-bottom: 6px; }
+.hero .what b { font-size: 20px; font-weight: 600; display: block; line-height: 1.1; }
+.hero .what span { font-size: 13px; color: var(--ink-2); }
+.scale { display: block; margin-top: 8px; }
+.scale .tk { stroke: var(--ink-3); stroke-width: 1; }
+.scale .base { stroke: var(--ink); stroke-width: 1; }
+.scale .tl { font: 500 12px var(--font-ui); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.scale .mk { fill: var(--ink); }
+.scale .prev { fill: none; stroke: var(--ink-2); stroke-width: 1.25; }
+.tbl { width: 100%; border-collapse: collapse; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.tbl th { font-size: 12px; font-weight: 500; color: var(--ink-2); text-align: right; padding: 0 0 6px; border-bottom: 1px solid var(--ink); }
+.tbl th:first-child { text-align: left; }
+.tbl th .k { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-right: 5px; }
+.tbl td { padding: 6px 0; border-bottom: 1px solid var(--rule); font-size: 15px; text-align: right; }
+.tbl td:first-child { text-align: left; font-weight: 600; }
+.tbl td b { font-size: 17px; font-weight: 600; }
+.tbl td span { font-size: 13px; color: var(--ink-2); margin-left: 6px; }
+.tbl tr.sec td { color: var(--ink-2); }
+.tbl tr.sec td:first-child { font-weight: 500; }
+.tbl tr.sec td b { font-weight: 500; color: var(--ink-2); }
+.tbl tr.sec small { display: block; font-size: 12px; font-weight: 400; }
+.how { margin-top: 8px; padding: 8px 10px 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--radius); position: relative; }
+.how::before { content: ""; position: absolute; top: -6px; left: 92px; width: 10px; height: 10px; background: var(--paper); border-left: 1px solid var(--rule); border-top: 1px solid var(--rule); transform: rotate(45deg); }
+.how .hd { display: flex; justify-content: space-between; align-items: center; }
+.how .hd b { font-size: 13px; }
+.how p { margin: 2px 0 0; font-size: 13px; color: var(--ink-2); line-height: 1.35; }
+.how svg .tk { stroke: var(--ink-3); }
+.how svg .tl { font: 500 12px var(--font-ui); fill: var(--ink-2); font-variant-numeric: tabular-nums; }
+.how svg .sl { font: 600 12px var(--font-ui); fill: var(--ink); font-variant-numeric: tabular-nums; }
+.how-link { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--ink); min-height: 32px; }
+.chartbar { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+.chartbar h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.chips { display: flex; border: 1px solid var(--rule-strong); border-radius: var(--radius); overflow: hidden; }
+.chip { height: 32px; padding: 0 8px; font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--surface); border: 0; border-left: 1px solid var(--rule); font-variant-numeric: tabular-nums; position: relative; }
+.chip::after { content: ""; position: absolute; inset: -6px 0; } /* 44px hit area */
+.chip:first-child { border-left: 0; }
+.chip.on { background: var(--ink); color: #fff; }
+.note { margin-top: 8px; font-size: 15px; line-height: 1.4; }
+.note .label { display: block; margin-bottom: 2px; }
+.actions { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px var(--s4) 34px; background: var(--surface); border-top: 1px solid var(--rule); display: grid; grid-template-columns: 1fr 1fr; gap: var(--s2); z-index: 4; }
+.actions .btn { min-height: 48px; }
+.actions .synced { font-size: 12px; font-weight: 500; color: var(--green); display: block; }
+</style>
+</head>
+<body>
+<main class="bb-page">
+  <header class="dir-head" id="dirHead"></header>
+  <div class="bb-row">
+    <figure class="bb-shot" data-screen="home"><div class="bb-phone" id="p-home"></div><figcaption>1 · Home dashboard (returning user)</figcaption></figure>
+    <figure class="bb-shot" data-screen="locked"><div class="bb-phone" id="p-locked"></div><figcaption>2 · First run: locked dashboard + strap tension</figcaption></figure>
+    <figure class="bb-shot" data-screen="live"><div class="bb-phone" id="p-live"></div><figcaption>3 · Live paced session (5-5), mid-inhale</figcaption></figure>
+    <figure class="bb-shot" data-screen="review"><div class="bb-phone" id="p-review"></div><figcaption>4 · Session review (paced)</figcaption></figure>
+  </div>
+</main>
+
+<script src="../../shared/mock-data.js"></script>
+<script src="../../shared/directions.js"></script>
+<script src="../../shared/bb.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = BB.data, P = D.latestPaced, H = D.helpers;
+  var DIR = BB_DIRECTIONS.filter(function (d) { return d.id === '01-clinical-precision'; })[0];
+  function r1(n) { return Math.round(n * 10) / 10; }
+  function word(s) { return H.scoreWord(s); }
+  function scoreCell(s) {
+    var w = word(s);
+    return '<b>' + H.formatScore(s) + '</b><span><i class="band ' + w.band + '"></i>' + w.word + '</span>';
+  }
+  function phone(id, inner) {
+    document.getElementById(id).innerHTML = BB.statusBar() + '<div class="bb-screen">' + inner + '</div>' + BB.homeIndicator();
+  }
+
+  /* ---------------------------------------------------------------- page header */
+  document.getElementById('dirHead').innerHTML =
+    '<div><h1>' + DIR.name + '</h1><p>' + DIR.positioning + ' ' + DIR.why + '</p></div>' +
+    '<div class="dir-meta"><div class="swatches">' + DIR.swatches.map(function (s) {
+      return '<div class="swatch"><i style="background:' + s.hex + '"></i><b>' + s.name + '</b>' + s.hex + '</div>';
+    }).join('') + '</div><div class="dir-tags">Type: <b>' + DIR.fonts.join(' + ') + '</b> &nbsp;·&nbsp; Best for: <b>' + DIR.bestFor + '</b></div></div>';
+
+  /* ---------------------------------------------------------------- shared bits */
+  function tabbar(active, disabled) {
+    var tabs = [['today', 'Today'], ['breathe', 'Breathe'], ['history', 'History'], ['profile', 'Profile']];
+    return '<nav class="tabbar" aria-label="Main">' + tabs.map(function (t) {
+      return '<button class="tab' + (t[0] === active ? ' on' : '') + '"' + (disabled ? ' disabled' : '') + '>' + BB.icon(t[0], 24) + t[1] + '</button>';
+    }).join('') + '</nav>';
+  }
+  function topbar() {
+    return '<div class="topbar pad"><span class="brand">' + BB.mark(24) + 'BreathBand<sup>®</sup></span>' +
+      '<span class="avatar" role="img" aria-label="Profile, ' + D.user.name + '">' + D.user.initials + '</span></div>';
+  }
+
+  // trend of paced totals; own y scale (score), no second axis
+  function trendSVG(W, Hh) {
+    var paced = D.sessions.filter(function (s) { return s.type === 'Paced'; });
+    var vals = paced.map(function (s) { return s.scores.total; });
+    var padL = 4, padR = 26, padT = 8, padB = 20, lo = 5, hi = 8;
+    var w = W - padL - padR, h = Hh - padT - padB;
+    function x(i) { return r1(padL + 6 + (i / (vals.length - 1)) * (w - 12)); }
+    function y(v) { return r1(padT + h - ((v - lo) / (hi - lo)) * h); }
+    var s = '<svg class="trend" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Breath Score over the last ' + vals.length + ' paced sessions, from ' + vals[0] + ' to ' + vals[vals.length - 1] + '">';
+    for (var g = lo; g <= hi; g++) {
+      s += '<line class="gl" x1="' + padL + '" x2="' + (W - padR + 4) + '" y1="' + y(g) + '" y2="' + y(g) + '"/>';
+      s += '<text class="gt" x="' + (W - 2) + '" y="' + (y(g) + 4) + '" text-anchor="end">' + g + '</text>';
+    }
+    var pts = vals.map(function (v, i) { return [x(i), y(v)]; });
+    s += '<path class="ln" d="' + BB.linePath(pts) + '"/>';
+    pts.forEach(function (p, i) { s += '<circle class="pt' + (i === pts.length - 1 ? ' last' : '') + '" cx="' + p[0] + '" cy="' + p[1] + '" r="4"/>'; });
+    s += '<text class="xt" x="' + pts[0][0] + '" y="' + (Hh - 4) + '" text-anchor="start">' + BB.fmtDate(paced[0].date) + '</text>';
+    s += '<text class="xt" x="' + pts[pts.length - 1][0] + '" y="' + (Hh - 4) + '" text-anchor="end">' + BB.fmtDate(paced[paced.length - 1].date) + '</text>';
+    return s + '</svg>';
+  }
+
+  /* ---------------------------------------------------------------- 1 home */
+  function recentRows(n) {
+    return D.sessions.slice().reverse().slice(0, n).map(function (s) {
+      var name = s.type === 'Paced' ? 'Paced ' + s.pacer : 'Open';
+      var v = s.type === 'Paced'
+        ? '<span class="num">' + H.formatScore(s.scores.total) + '</span><small><i class="band ' + word(s.scores.total).band + '"></i>' + word(s.scores.total).word + '</small>'
+        : '<span class="num">' + s.open.rate + ' br/min</span><small>' + s.open.inRange + '% in range</small>';
+      return '<div class="srow"><div><div class="t">' + name + '</div><div class="s num">' + BB.fmtDate(s.date, true) + ' · ' + s.time + ' · ' + BB.fmtClock(s.duration) + '</div></div>' +
+        '<div class="v">' + v + '</div>' + BB.icon('chevronRight', 16) + '</div>';
+    }).join('');
+  }
+
+  phone('p-home',
+    '<div class="scr">' + topbar() +
+    '<div class="pad">' +
+      '<div class="greet"><h2>Good morning, ' + D.user.firstName + '</h2><p>' + D.today.label + ' · ' + D.user.skillLevel + '</p></div>' +
+      '<div class="sys panel">' +
+        '<div>' + BB.icon('bluetooth', 20) + '<div><div class="label">Strap</div><div class="v"><i class="dot"></i>Connected</div><div class="meta num">Battery ' + D.device.battery + '%</div></div></div>' +
+        '<div>' + BB.icon('cloudCheck', 20) + '<div><div class="label">BreathCloud</div><div class="v">Synced</div><div class="meta">' + D.cloud.lastSync + '</div></div></div>' +
+      '</div>' +
+      '<section class="latest panel" aria-label="Latest session">' +
+        '<div class="row-sb"><span class="label">Latest · ' + P.pacerLabel + '</span><span class="meta num">' + BB.fmtDate(P.date, true) + ' · ' + P.time + ' · ' + P.durationLabel + '</span></div>' +
+        '<div class="readout num"><span class="big">' + H.formatScore(P.scores.total) + '</span><span class="of">/ 10</span><span class="word"><i class="band ' + word(P.scores.total).band + '"></i>' + word(P.scores.total).word + '</span>' +
+          '<span class="delta"><b>+' + r1(P.scores.total - P.previousTotal) + '</b> vs last<br>paced session</span></div>' +
+        '<div class="row-sb" style="margin-top:10px"><span class="label">Last 6 paced sessions</span><a class="link" style="min-height:0" href="#how">' + BB.icon('info', 16) + 'How scores work</a></div>' +
+        trendSVG(326, 92) +
+      '</section>' +
+      '<div class="quick">' +
+        '<button class="btn ghost">Open session<small>Free breathing</small></button>' +
+        '<button class="btn">Paced session<small>5-5 · 5 min</small></button>' +
+      '</div>' +
+      '<div class="list-head"><h3>Recent sessions</h3><a class="link" href="#history">View all ' + D.sessions.length + '</a></div>' +
+      '<div class="rows">' + recentRows(3) + '</div>' +
+    '</div>' + tabbar('today') + '</div>');
+
+  /* ---------------------------------------------------------------- 2 locked */
+  var T = D.calibration.tension;
+  function gaugeSVG() {
+    var W = 300, Hh = 168, cx = 150, cy = 150, R = 124;
+    function pt(v, rad) { var a = Math.PI * (1 - v); return [r1(cx + rad * Math.cos(a)), r1(cy - rad * Math.sin(a))]; }
+    function arc(v0, v1, rad) { var a = pt(v0, rad), b = pt(v1, rad); return 'M' + a[0] + ' ' + a[1] + 'A' + rad + ' ' + rad + ' 0 0 1 ' + b[0] + ' ' + b[1]; }
+    var s = '<svg class="gauge" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Strap tension gauge: ' + Math.round(T.value * 100) + ', inside the target range ' + Math.round(T.rangeLow * 100) + ' to ' + Math.round(T.rangeHigh * 100) + '">';
+    s += '<path class="trk" d="' + arc(0, 1, R) + '"/>';
+    s += '<path class="ok" d="' + arc(T.rangeLow, T.rangeHigh, R) + '"/>';
+    for (var i = 0; i <= 40; i++) {
+      var v = i / 40, maj = i % 10 === 0, a = pt(v, R - 9), b = pt(v, R - (maj ? 22 : 15));
+      s += '<line class="tk' + (maj ? ' maj' : '') + '" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
+    }
+    [T.rangeLow, T.rangeHigh].forEach(function (v) {
+      var p = pt(v, R + 14);
+      s += '<text class="tl" x="' + p[0] + '" y="' + (p[1] + 4) + '" text-anchor="middle">' + Math.round(v * 100) + '</text>';
+    });
+    var n = pt(T.value, R - 30);
+    s += '<line class="needle" x1="' + cx + '" y1="' + cy + '" x2="' + n[0] + '" y2="' + n[1] + '"/><circle class="hub" cx="' + cx + '" cy="' + cy + '" r="5"/>';
+    s += '<text class="end" x="' + (cx - R) + '" y="' + (cy + 16) + '" text-anchor="middle">Loose</text>';
+    s += '<text class="end" x="' + (cx + R) + '" y="' + (cy + 16) + '" text-anchor="middle">Tight</text>';
+    return s + '</svg>';
+  }
+  function balloonMini() {
+    // three maximal breaths (100%) with the 6% reference inside, like the pre-calibration diagram
+    var W = 88, Hh = 52, s = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" aria-hidden="true">';
+    var big = [], small = [];
+    for (var i = 0; i <= 88; i++) {
+      big.push([i, r1(26 - 22 * Math.sin(i / 88 * Math.PI * 6))]);
+      small.push([i, r1(26 - 5 * Math.sin(i / 88 * Math.PI * 6))]);
+    }
+    s += '<line class="m" x1="0" x2="88" y1="26" y2="26"/>';
+    s += '<path class="w" d="' + BB.linePath(big) + '"/><path class="w" style="stroke:var(--ink)" d="' + BB.linePath(small) + '"/>';
+    return s + '</svg>';
+  }
+
+  phone('p-locked',
+    '<div class="scr locked-bg" aria-hidden="true">' + topbar() +
+      '<div class="pad">' +
+        '<div class="greet"><h2>Welcome, ' + D.user.firstName + '</h2><p>Set up your strap to begin</p></div>' +
+        '<div class="sys panel">' +
+          '<div>' + BB.icon('bluetooth', 20) + '<div><div class="label">Strap</div><div class="v">Paired</div><div class="meta">Not calibrated</div></div></div>' +
+          '<div>' + BB.icon('cloud', 20) + '<div><div class="label">BreathCloud</div><div class="v">Ready</div><div class="meta">No sessions yet</div></div></div>' +
+        '</div>' +
+        '<section class="latest panel"><div class="row-sb"><span class="label">Latest session</span><span class="meta">None</span></div>' +
+          '<div class="readout"><span class="big ghostval">—</span><span class="of">/ 10</span></div>' +
+          '<div class="skel" style="width:70%;margin-top:14px"></div><div class="skel" style="width:45%;margin-top:8px"></div></section>' +
+        '<div class="quick"><button class="btn ghost" disabled>' + BB.icon('lock', 16) + 'Open</button><button class="btn ghost" disabled>' + BB.icon('lock', 16) + 'Paced</button></div>' +
+      '</div>' + tabbar('today', true) +
+    '</div>' +
+    '<div class="scrim"></div>' +
+    '<div class="pad" style="position:absolute;top:166px;left:0;right:0;z-index:6">' +
+      '<div class="lockbar">' + BB.icon('lock', 18) + 'Dashboard locked until the strap is calibrated</div></div>' +
+    '<section class="sheet" role="dialog" aria-label="Strap calibration">' +
+      '<div class="grabber"></div>' +
+      '<ol class="steps" aria-label="Calibration steps"><li class="on">1 · Strap tension</li><li>2 · Balloon breaths</li><li>3 · Ready</li></ol>' +
+      '<h2>Set the strap tension</h2>' +
+      gaugeSVG() +
+      '<div class="inrange"><span class="pill">' + BB.icon('check', 18) + 'In range</span><span class="meta num">Tension ' + Math.round(T.value * 100) + ' · target ' + Math.round(T.rangeLow * 100) + '–' + Math.round(T.rangeHigh * 100) + '</span></div>' +
+      '<ol class="instr">' +
+        '<li class="done">Wrap the strap between your belly button and the bottom of your rib cage.</li>' +
+        '<li class="done">Pull your stomach in and tighten until the gauge turns green.</li>' +
+        '<li class="now">Hold the tension and lock the clip.</li>' +
+      '</ol>' +
+      '<div class="next">' + balloonMini() + '<div><b>Next: balloon breaths</b><span>Imagine your belly is a balloon. Three of your deepest breaths set your 100%.</span></div></div>' +
+      '<button class="btn go">Continue to pre-calibration ' + BB.icon('chevronRight', 18) + '</button>' +
+    '</section>');
+
+  /* ---------------------------------------------------------------- 3 live */
+  var L = BB.liveState();
+  function rulerSVG(W) {
+    var Hh = 26, s = '<svg class="ruler" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Session progress: ' + L.elapsed + ' of ' + P.durationLabel + '">';
+    s += '<rect class="tr" x="0" y="2" width="' + W + '" height="4"/><rect class="fl" x="0" y="2" width="' + r1(W * L.progress) + '" height="4"/>';
+    for (var m = 0; m <= 5; m++) {
+      var x = r1(m === 5 ? W - 0.5 : m === 0 ? 0.5 : (m / 5) * W);
+      s += '<line class="tk" x1="' + x + '" x2="' + x + '" y1="0" y2="9"/>';
+      s += '<text class="tl" x="' + x + '" y="23" text-anchor="' + (m === 0 ? 'start' : m === 5 ? 'end' : 'middle') + '">' + m + ' min</text>';
+    }
+    return s + '</svg>';
+  }
+  function dialSVG() {
+    var S = 300, c = 150, Rb = 132, rOut = 48, rIn = 106;
+    var s = '<svg class="dial" width="' + S + '" height="' + S + '" viewBox="0 0 ' + S + ' ' + S + '" role="img" aria-label="Pacer ring and your breath, ' + r1(L.t % 10) + ' seconds into a 5 second inhale.">';
+    // breath-cycle bezel: 10 s round the dial, clockwise from 12 o'clock; right half inhale, left half exhale
+    function pol(sec, rad) { var a = (sec / 10) * 2 * Math.PI - Math.PI / 2; return [r1(c + rad * Math.cos(a)), r1(c + rad * Math.sin(a))]; }
+    s += '<circle class="bez" cx="' + c + '" cy="' + c + '" r="' + Rb + '"/>';
+    s += '<path class="arc-in" d="M' + pol(0, Rb).join(' ') + 'A' + Rb + ' ' + Rb + ' 0 0 1 ' + pol(5, Rb).join(' ') + '"/>';
+    s += '<path class="arc-out" d="M' + pol(5, Rb).join(' ') + 'A' + Rb + ' ' + Rb + ' 0 0 1 ' + pol(10, Rb).join(' ') + '"/>';
+    for (var i = 0; i < 40; i++) {
+      var sec = i / 4, maj = i % 20 === 0, mid = i % 4 === 0;
+      var a = pol(sec, Rb - 4), b = pol(sec, Rb - (maj ? 18 : mid ? 11 : 7));
+      s += '<line class="tk' + (maj ? ' maj' : '') + '" x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '"/>';
+    }
+    // phase marker: where we are in the 10 s cycle
+    var ph = L.t % 10, m0 = pol(ph, Rb + 2), m1 = pol(ph - 0.22, Rb + 11), m2 = pol(ph + 0.22, Rb + 11);
+    s += '<path class="phase" d="M' + m0.join(' ') + 'L' + m1.join(' ') + 'L' + m2.join(' ') + 'Z"/>';
+    s += '<text class="lb in" x="' + (S - 2) + '" y="14" text-anchor="end">Inhale 5 s</text>';
+    s += '<text class="lb out" x="2" y="14" text-anchor="start">Exhale 5 s</text>';
+    // depth guides: fully out / fully in
+    s += '<circle class="guide" cx="' + c + '" cy="' + c + '" r="' + rOut + '"/><circle class="guide" cx="' + c + '" cy="' + c + '" r="' + rIn + '"/>';
+    s += '<line class="cross" x1="' + (c - 6) + '" x2="' + (c + 6) + '" y1="' + c + '" y2="' + c + '"/><line class="cross" y1="' + (c - 6) + '" y2="' + (c + 6) + '" x1="' + c + '" x2="' + c + '"/>';
+    var ru = r1(rOut + L.userSize * (rIn - rOut)), rp = r1(rOut + L.pacerSize * (rIn - rOut));
+    s += '<circle class="user" cx="' + c + '" cy="' + c + '" r="' + ru + '"/>';
+    s += '<circle class="pacer" cx="' + c + '" cy="' + c + '" r="' + rp + '"/>';
+    return s + '</svg>';
+  }
+  function stripSVG(W, Hh) {
+    var t0 = L.t - 20, t1 = L.t + 5, range = 4;
+    var padL = 36, padR = 4, padT = 4, padB = 4;
+    var box = { x: padL, y: padT, w: W - padL - padR, h: Hh - padT - padB }, mid = r1(box.y + box.h / 2);
+    var s = '<svg class="paper" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Line view: the last 20 seconds of your breathing against the pacer, plus the next 5 seconds of pacer">';
+    s += '<defs><clipPath id="lc-in"><rect x="0" y="0" width="' + W + '" height="' + mid + '"/></clipPath><clipPath id="lc-out"><rect x="0" y="' + mid + '" width="' + W + '" height="' + (Hh - mid) + '"/></clipPath></defs>';
+    for (var g = Math.ceil(t0); g <= t1; g++) {
+      var gx = r1(box.x + ((g - t0) / (t1 - t0)) * box.w);
+      s += '<line class="' + (g % 5 === 0 ? 'gm' : 'gf') + '" x1="' + gx + '" x2="' + gx + '" y1="' + box.y + '" y2="' + (box.y + box.h) + '"/>';
+    }
+    s += '<line class="mid" x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + mid + '" y2="' + mid + '"/>';
+    var pc = BB.toXY(BB.slice(P.pacerWave, 10, t0, t1), box, t0, t1, range);
+    s += '<path class="pc" d="' + BB.smoothPath(pc) + '"/>';
+    var uu = BB.toXY(BB.slice(P.userWave, 10, t0, L.t), box, t0, t1, range), ud = BB.smoothPath(uu);
+    s += '<path class="ui" d="' + ud + '" clip-path="url(#lc-in)"/><path class="uo" d="' + ud + '" clip-path="url(#lc-out)"/>';
+    var nx = r1(box.x + (20 / 25) * box.w), last = uu[uu.length - 1];
+    s += '<line class="now" x1="' + nx + '" x2="' + nx + '" y1="' + box.y + '" y2="' + (box.y + box.h) + '"/>';
+    s += '<circle class="nowdot" cx="' + last[0] + '" cy="' + last[1] + '" r="3.5"/>';
+    s += '<text class="ax in" x="' + (padL - 6) + '" y="' + (box.y + 11) + '" text-anchor="end">IN</text>';
+    s += '<text class="ax out" x="' + (padL - 6) + '" y="' + (box.y + box.h - 2) + '" text-anchor="end">OUT</text>';
+    return s + '</svg>';
+  }
+
+  phone('p-live',
+    '<div class="scr pad">' +
+      '<div class="live-head"><div><h2>' + P.pacerLabel + '</h2><div class="meta">Timed · ' + P.durationLabel + ' · ' + D.user.skillLevel + '</div></div>' +
+        '<button class="soundbtn" aria-pressed="true" aria-label="Sound guidance: musical notes on">' + BB.icon('note', 18) + 'Notes on</button></div>' +
+      '<div class="clock num"><div><div class="label">Elapsed</div><div class="v">' + L.elapsed + '</div></div><div><div class="label">Remaining</div><div class="v">' + L.remaining + '</div></div></div>' +
+      rulerSVG(358) +
+      dialSVG() +
+      '<div class="cue"><h3>Breathe in</h3><p>High note at the top · ' + (L.userSize > L.pacerSize + 0.03 ? 'a little ahead of the pacer' : L.userSize < L.pacerSize - 0.03 ? 'a little behind the pacer' : 'right on the pacer') + '</p></div>' +
+      '<div class="legend"><span><i class="lp"></i>Pacer</span><span><i class="lu"></i>Your breath</span><span><i class="lg"></i>Full in / out</span></div>' +
+      '<div class="strip"><div class="hd"><span class="label">Line view · last 20 s</span><span class="meta">Pacer dashed</span></div>' + stripSVG(358, 84) + '</div>' +
+      '<div class="controls"><button class="btn ghost">' + BB.icon('stop', 18) + 'Stop</button><button class="btn">' + BB.icon('pause', 18) + 'Pause</button></div>' +
+    '</div>');
+
+  /* ---------------------------------------------------------------- 4 review */
+  function scaleSVG(W) {
+    var Hh = 30, pad = 6, s = '<svg class="scale" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Total ' + P.scores.total + ' on a 1 to 10 scale; previous ' + P.previousTotal + '">';
+    function x(v) { return r1(pad + ((v - 1) / 9) * (W - pad * 2)); }
+    s += '<line class="base" x1="' + pad + '" x2="' + (W - pad) + '" y1="10" y2="10"/>';
+    for (var v = 1; v <= 10; v += 0.5) {
+      var maj = v % 1 === 0;
+      s += '<line class="tk" x1="' + x(v) + '" x2="' + x(v) + '" y1="10" y2="' + (maj ? 16 : 13) + '"/>';
+      if (maj) s += '<text class="tl" x="' + x(v) + '" y="28" text-anchor="middle">' + v + '</text>';
+    }
+    s += '<path class="prev" d="M' + x(P.previousTotal) + ' 9l-4-7h8z"/>';
+    s += '<path class="mk" d="M' + x(P.scores.total) + ' 10l-5-9h10z"/>';
+    return s + '</svg>';
+  }
+  function howSVG(W) {
+    var Hh = 34, s = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" aria-hidden="true">';
+    var cells = D.scoring.conversion, cw = (W - 2) / cells.length;
+    cells.forEach(function (c, i) {
+      var x = r1(1 + i * cw);
+      s += '<line class="tk" x1="' + x + '" x2="' + x + '" y1="0" y2="30"/>';
+      s += '<text class="sl" x="' + r1(x + cw / 2) + '" y="12" text-anchor="middle">' + c.score + '</text>';
+      s += '<text class="tl" x="' + r1(x + cw / 2) + '" y="28" text-anchor="middle">' + (c.to == null ? '90+' : c.to) + '</text>';
+    });
+    s += '<line class="tk" x1="' + (W - 1) + '" x2="' + (W - 1) + '" y1="0" y2="30"/>';
+    return s + '</svg>';
+  }
+  function reviewChart(W, Hh, t0, t1) {
+    var range = 4, padL = 36, padR = 30, padT = 6, padB = 20;
+    var box = { x: padL, y: padT, w: W - padL - padR, h: Hh - padT - padB }, mid = r1(box.y + box.h / 2);
+    function yv(v) { return r1(mid - (v / range) * (box.h / 2)); }
+    var s = '<svg class="paper" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Your breathing against the pacer from ' + BB.fmtClock(t0) + ' to ' + BB.fmtClock(t1) + '. Inhale above the midline, exhale below.">';
+    s += '<defs><clipPath id="rc-in"><rect x="0" y="0" width="' + W + '" height="' + mid + '"/></clipPath><clipPath id="rc-out"><rect x="0" y="' + mid + '" width="' + W + '" height="' + (Hh - mid) + '"/></clipPath></defs>';
+    for (var g = Math.ceil(t0); g <= t1; g++) {
+      var gx = r1(box.x + ((g - t0) / (t1 - t0)) * box.w);
+      s += '<line class="' + (g % 5 === 0 ? 'gm' : 'gf') + '" x1="' + gx + '" x2="' + gx + '" y1="' + box.y + '" y2="' + (box.y + box.h) + '"/>';
+    }
+    [-3, -2, -1, 1, 2, 3].forEach(function (v) {
+      s += '<line class="' + (Math.abs(v) === 3 ? 'gm' : 'gf') + '" x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + yv(v) + '" y2="' + yv(v) + '"/>';
+    });
+    s += '<line class="mid" x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + mid + '" y2="' + mid + '"/>';
+    var pc = BB.toXY(BB.slice(P.pacerWave, 10, t0, t1), box, t0, t1, range);
+    s += '<path class="pc" d="' + BB.smoothPath(pc) + '"/>';
+    var ud = BB.smoothPath(BB.toXY(BB.slice(P.userWave, 10, t0, t1), box, t0, t1, range));
+    s += '<path class="ui" d="' + ud + '" clip-path="url(#rc-in)"/><path class="uo" d="' + ud + '" clip-path="url(#rc-out)"/>';
+    s += '<text class="ax in" x="' + (padL - 6) + '" y="' + (box.y + 11) + '" text-anchor="end">IN</text>';
+    s += '<text class="ax out" x="' + (padL - 6) + '" y="' + (box.y + box.h - 2) + '" text-anchor="end">OUT</text>';
+    [3, 0, -3].forEach(function (v) {
+      s += '<text class="sc" x="' + (W - 2) + '" y="' + (yv(v) + 4) + '" text-anchor="end">' + (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + '%</text>';
+    });
+    for (var tt = Math.ceil(t0 / 10) * 10; tt <= t1; tt += 10) {
+      var tx = r1(box.x + ((tt - t0) / (t1 - t0)) * box.w);
+      s += '<text class="tt" x="' + tx + '" y="' + (Hh - 4) + '" text-anchor="middle">' + BB.fmtClock(tt) + '</text>';
+    }
+    return s + '</svg>';
+  }
+  function overviewSVG(W, t0, t1) {
+    var Hh = 26, padL = 36, padR = 30, range = 4, box = { x: padL, y: 2, w: W - padL - padR, h: Hh - 4 }, mid = r1(box.y + box.h / 2);
+    var s = '<svg class="paper" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Whole session overview; the window shows ' + BB.fmtClock(t0) + ' to ' + BB.fmtClock(t1) + '. Swipe to scroll.">';
+    s += '<defs><clipPath id="ov-in"><rect x="0" y="0" width="' + W + '" height="' + mid + '"/></clipPath><clipPath id="ov-out"><rect x="0" y="' + mid + '" width="' + W + '" height="' + Hh + '"/></clipPath></defs>';
+    var d = BB.linePath(BB.toXY(BB.slice(P.userWave, 10, 0, P.duration, 900), box, 0, P.duration, range));
+    s += '<path class="ui" style="stroke-width:1" d="' + d + '" clip-path="url(#ov-in)"/><path class="uo" style="stroke-width:1" d="' + d + '" clip-path="url(#ov-out)"/>';
+    var x0 = r1(box.x + (t0 / P.duration) * box.w), x1 = r1(box.x + (t1 / P.duration) * box.w);
+    s += '<rect class="shade" x="' + box.x + '" y="0" width="' + r1(x0 - box.x) + '" height="' + Hh + '"/><rect class="shade" x="' + x1 + '" y="0" width="' + r1(box.x + box.w - x1) + '" height="' + Hh + '"/>';
+    s += '<rect class="win" x="' + x0 + '" y="1" width="' + r1(x1 - x0) + '" height="' + (Hh - 2) + '" rx="2"/>';
+    s += '<text class="tt" x="' + (padL - 6) + '" y="17" text-anchor="end">0:00</text><text class="tt" x="' + (W - 2) + '" y="17" text-anchor="end">' + P.durationLabel + '</text>';
+    return s + '</svg>';
+  }
+  var S = P.scores, ws = 120, we = 180;
+  phone('p-review',
+    '<div class="scr pad">' +
+      '<div class="navbar"><a class="back" href="#history">' + BB.icon('chevronLeft', 22) + 'History</a><h2>Session report</h2><span class="r"></span></div>' +
+      '<div class="rmeta num"><b>' + P.pacerLabel + '</b><span>' + BB.fmtDate(P.date, true) + ' · ' + P.time + ' · ' + P.durationLabel + ' · ' + P.skillLevel + '</span></div>' +
+      '<div class="hero num"><div class="score">' + H.formatScore(S.total) + '<small>/ 10</small></div>' +
+        '<div class="what"><b><i class="band ' + word(S.total).band + '"></i>' + word(S.total).word + '</b><span>Total Breath Score · <span style="color:var(--green);font-weight:600">+' + r1(S.total - P.previousTotal) + '</span> vs ' + BB.fmtDate('2026-11-05') + '<br>Mean of Timing and Depth</span></div></div>' +
+      scaleSVG(358) +
+      '<table class="tbl"><thead><tr><th><span style="display:inline-flex;align-items:center;gap:4px">Accuracy ' + BB.icon('info', 16) + '</span></th><th><i class="k" style="background:var(--inhale)"></i>Inhale · IN</th><th><i class="k" style="background:var(--exhale)"></i>Exhale · OUT</th></tr></thead><tbody>' +
+        '<tr><td>Timing</td><td>' + scoreCell(S.timing.inhale) + '</td><td>' + scoreCell(S.timing.exhale) + '</td></tr>' +
+        '<tr><td>Depth</td><td>' + scoreCell(S.depth.inhale) + '</td><td>' + scoreCell(S.depth.exhale) + '</td></tr>' +
+        '<tr class="sec"><td>Smoothness<small>Secondary · not in total</small></td><td>' + scoreCell(S.smoothness.inhale) + '</td><td>' + scoreCell(S.smoothness.exhale) + '</td></tr>' +
+      '</tbody></table>' +
+      '<div class="how" id="how" role="note"><div class="hd"><b>How scores work</b><span class="meta">Score · % off the pacer</span></div>' + howSVG(336) +
+        '<p>Every further 10% off costs a point. Beyond 1 SD scores 1.</p></div>' +
+      '<div class="chartbar"><h3>Breath vs pacer</h3><div class="chips" role="group" aria-label="Time window">' + D.timeAxis.map(function (c) {
+        return '<button class="chip' + (c === '60 s' ? ' on' : '') + '" aria-pressed="' + (c === '60 s') + '">' + c + '</button>';
+      }).join('') + '</div></div>' +
+      reviewChart(358, 132, ws, we) +
+      overviewSVG(358, ws, we) +
+      '<div class="note"><span class="label">Session note</span>' + P.note + '</div>' +
+    '</div>' +
+    '<div class="actions"><button class="btn ghost">' + BB.icon('pdf', 18) + 'Export PDF</button>' +
+      '<button class="btn ghost" style="flex-direction:column;gap:0;line-height:1.15">' + '<span style="display:inline-flex;gap:6px;align-items:center">' + BB.icon('cloudCheck', 18) + 'BreathCloud</span><span class="synced">Synced · coach can view</span></button></div>');
+
+  BB.initPage();
+})();
+</script>
+</body>
+</html>

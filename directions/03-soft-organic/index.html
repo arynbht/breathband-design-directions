@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Soft Organic · BreathBand®</title>
+<link rel="stylesheet" href="../../shared/fonts/fonts.css">
+<link rel="stylesheet" href="../../shared/frame.css">
+<style>
+/* ===================================================================
+   03 Soft Organic: design tokens (the future BreathbandTheme values)
+   =================================================================== */
+:root {
+  /* colour */
+  --linen: #F2F0EB;
+  --surface: #FBFAF7;
+  --surface-sunk: #E9E6DF;
+  --ink: #2C2B30;
+  --ink-2: #66646B;
+  --ink-3: #8C8A90;          /* non-text marks only */
+  --sage: #4F7D5E;
+  --sage-deep: #3E6A4D;
+  --sage-tint: #DDE7DE;
+  --clay: #B9822E;           /* low score band (marks) */
+  --clay-ink: #8A5F1E;       /* low score band (text) */
+  --clay-tint: #F1E3CC;
+  --inhale: #C9505A;
+  --inhale-ink: #A63E48;     /* inhale text, AA on linen */
+  --inhale-tint: rgba(201, 80, 90, .17);
+  --exhale: #4B7DBF;
+  --exhale-ink: #3A68A8;     /* exhale text, AA on linen */
+  --exhale-tint: rgba(75, 125, 191, .17);
+  --pacer-ghost: rgba(44, 43, 48, .075);
+  --scrim: rgba(44, 43, 48, .28);
+
+  /* type */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-ui: 'Figtree', system-ui, sans-serif;
+  --soft: "SOFT" 100;
+  --t-hero: 50px;
+  --t-display: 34px;
+  --t-title: 22px;
+  --t-body: 16px;
+  --t-small: 15px;
+  --t-meta: 13px;
+
+  /* shape + space */
+  --r-xl: 36px;
+  --r-lg: 28px;
+  --r-md: 20px;
+  --r-pill: 999px;
+  --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 64px;
+  --gutter: 20px;
+
+  /* depth: soft, diffuse, low contrast */
+  --shadow-rest: 0 10px 28px -14px rgba(60, 52, 40, .16);
+  --shadow-float: 0 24px 48px -18px rgba(60, 52, 40, .28);
+
+  /* motion (documented for the real theme; mockups are still frames) */
+  --ease-breath: cubic-bezier(.37, 0, .63, 1);   /* sine in-out */
+  --dur-breath: 5000ms;
+  --dur-ui: 700ms;
+
+  /* frame */
+  --frame-ground: var(--linen);
+  --status-ink: var(--ink);
+  --page-ground: #E4E1DA;
+  --page-ink-2: var(--ink-2);
+  --icon-stroke: 1.6;
+}
+
+::selection { background: var(--sage-tint); color: var(--ink); }
+:focus-visible { outline: 2px solid var(--sage); outline-offset: 3px; }
+
+body { font-family: var(--font-ui); color: var(--ink); }
+.bb-shot { margin: 0; }
+
+/* ---------------- page header (outside the frames) ---------------- */
+.page-head { display: flex; gap: 48px; align-items: flex-end; justify-content: space-between; margin-bottom: 36px; max-width: 1760px; }
+.page-head h1 { font: 500 44px/1.05 var(--font-display); font-variation-settings: var(--soft); letter-spacing: -0.02em; margin: 0 0 10px; }
+.page-head p { margin: 0; font-size: 18px; color: var(--ink-2); }
+.page-meta { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+.swatches { display: flex; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.swatches li { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); }
+.swatches span { width: 44px; height: 44px; border-radius: 50% 46% 52% 48%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.08); }
+.page-fonts { font-size: 14px; color: var(--ink-2); }
+.page-fonts b { font-weight: 600; color: var(--ink); }
+.tag { display: inline-flex; align-items: center; height: 28px; padding: 0 14px; border-radius: var(--r-pill); background: var(--sage-tint); color: var(--sage-deep); font-size: 14px; font-weight: 600; }
+
+/* ---------------- shared screen pieces ---------------- */
+.bb-screen { font-family: var(--font-ui); color: var(--ink); background: var(--linen); }
+.disp { font-family: var(--font-display); font-variation-settings: var(--soft); font-optical-sizing: auto; letter-spacing: -0.015em; }
+.muted { color: var(--ink-2); }
+.num { font-variant-numeric: tabular-nums lining-nums; }
+.pad { padding: 0 var(--gutter); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 52px; padding: 0 22px; border: 0; border-radius: var(--r-pill);
+  font: 600 16px/1 var(--font-ui); cursor: pointer;
+}
+.btn-sage { background: var(--sage); color: #fff; }
+.btn-soft { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-rest); }
+.btn-quiet { background: var(--surface-sunk); color: var(--ink); }
+.link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--sage-deep); font-weight: 600; font-size: 15px; text-decoration: none; }
+.card { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-rest); }
+.leaf { display: inline-block; width: 9px; height: 9px; border-radius: 60% 0 60% 0; transform: rotate(-45deg); flex: none; }
+.leaf.high, .leaf.good { background: var(--sage); }
+.leaf.mid { background: #C9A15A; }
+.leaf.low { background: var(--clay); }
+
+/* wave styling for BB.waveSVG */
+.bb-w-in { stroke: var(--inhale); stroke-linecap: round; }
+.bb-w-out { stroke: var(--exhale); stroke-linecap: round; }
+.bb-w-area-in { fill: var(--inhale-tint); }
+.bb-w-area-out { fill: var(--exhale-tint); }
+.bb-w-pacer { stroke: var(--pacer-ghost); stroke-linecap: round; }
+.bb-w-mid { stroke: var(--ink-3); stroke-width: 1; opacity: .7; }
+.bb-w-label { font: 600 12px var(--font-ui); fill: var(--ink-2); }
+.bb-w-tick { font: 500 12px var(--font-ui); fill: var(--ink-2); }
+.bb-w-grid { stroke: rgba(44,43,48,.06); }
+
+/* tab bar */
+.tabbar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 88px; padding: 6px 12px 30px;
+  display: grid; grid-template-columns: repeat(4, 1fr); background: var(--linen);
+  box-shadow: 0 -14px 24px -18px rgba(60, 52, 40, .25);
+  z-index: 10;
+}
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--ink-2); min-height: 48px; }
+.tab.on { color: var(--ink); }
+.tab.on::after { content: ''; width: 5px; height: 5px; border-radius: 50%; background: var(--sage); margin-top: 1px; }
+.tab:not(.on)::after { content: ''; width: 5px; height: 5px; margin-top: 1px; }
+
+/* ===================================================================
+   1. HOME
+   =================================================================== */
+.home-top { position: absolute; top: 54px; left: 0; right: 0; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 var(--gutter); }
+.home-top .date { font-size: 15px; color: var(--ink-2); font-weight: 500; }
+.avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--surface-sunk); display: grid; place-items: center; font-weight: 700; font-size: 15px; color: var(--ink); }
+.home-body { position: absolute; top: 106px; left: 0; right: 0; bottom: 88px; overflow: hidden; }
+.greet { font-size: 32px; font-weight: 400; line-height: 1.08; margin: 2px 0 8px; }
+.greet em { font-style: italic; font-weight: 400; }
+.status-line { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--ink-2); margin-bottom: 14px; }
+.status-line span { display: inline-flex; align-items: center; gap: 6px; }
+.status-line .ok { color: var(--sage-deep); }
+.latest { padding: 14px 20px 4px; position: relative; overflow: hidden; }
+.latest-head { display: flex; justify-content: space-between; align-items: baseline; }
+.latest .what { font-size: 15px; color: var(--ink-2); }
+.latest .big { display: flex; align-items: baseline; gap: 12px; margin: 4px 0 2px; }
+.latest .big .word { font-size: 42px; font-weight: 450; line-height: 1; }
+.latest .big .val { font-size: 30px; font-weight: 350; color: var(--ink-2); line-height: 1; }
+.latest .delta .up { display: inline-flex; transform: rotate(-90deg); }
+.latest .delta { font-size: 15px; color: var(--sage-deep); font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.latest .mini { display: block; margin: 6px -20px 0; }
+.latest-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.latest-foot .key { display: flex; gap: 12px; font-size: 13px; color: var(--ink-2); }
+.latest-foot .key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0 14px; }
+.quick .btn { min-height: 56px; flex-direction: column; gap: 2px; line-height: 1.1; }
+.quick .btn small { font-weight: 500; font-size: 13px; opacity: .85; }
+.trend { display: grid; grid-template-columns: 1fr 112px; gap: 14px; align-items: end; }
+.trend h3, .recent h3 { font: 500 20px/1.2 var(--font-display); font-variation-settings: var(--soft); margin: 0 0 2px; letter-spacing: -0.01em; }
+.trend p { margin: 0; font-size: 14px; color: var(--ink-2); }
+.calm { border-radius: var(--r-md); background: var(--surface-sunk); padding: 12px 12px 10px; }
+.calm b { display: block; font: 500 20px/1 var(--font-display); font-variation-settings: var(--soft); }
+.calm span { font-size: 13px; color: var(--ink-2); line-height: 1.25; display: block; margin-top: 4px; }
+.recent { margin-top: 10px; }
+.recent-head { display: flex; justify-content: space-between; align-items: center; }
+.row { display: flex; align-items: center; gap: 12px; min-height: 54px; border-bottom: 1px solid rgba(44,43,48,.07); }
+.row .glyph { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--ink-2); flex: none; }
+.row .t { flex: 1; min-width: 0; }
+.row .t b { display: block; font-size: 15px; font-weight: 600; }
+.row .t span { font-size: 13px; color: var(--ink-2); }
+.row .v { text-align: right; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+.row .v small { display: block; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+
+/* ===================================================================
+   2. LOCKED + STRAP TENSION
+   =================================================================== */
+.locked-dash { position: absolute; inset: 0; filter: grayscale(1) saturate(0); opacity: .5; pointer-events: none; }
+.ghost-card { height: 74px; border-radius: var(--r-lg); background: var(--surface); padding: 16px 20px; display: grid; gap: 10px; align-content: center; }
+.ghost-bar { height: 56px; border-radius: var(--r-pill); background: var(--surface-sunk); }
+.ghost-line { height: 14px; border-radius: 7px; background: var(--surface-sunk); }
+.lock-scrim { position: absolute; inset: 0; background: var(--scrim); }
+.lock-chip { position: absolute; top: 164px; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: var(--r-pill); background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; box-shadow: var(--shadow-rest); white-space: nowrap; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 282px; background: var(--surface); border-radius: var(--r-xl) var(--r-xl) 0 0; box-shadow: var(--shadow-float); padding: 8px var(--gutter) 34px; display: flex; flex-direction: column; }
+.grabber { width: 40px; height: 5px; border-radius: 3px; background: rgba(44,43,48,.18); margin: 0 auto 10px; flex: none; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; margin: 0 0 10px; padding: 0; position: relative; }
+.steps::before { content: ''; position: absolute; top: 11px; left: 16.6%; right: 16.6%; height: 2px; background: var(--surface-sunk); border-radius: 1px; }
+.steps li { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-2); position: relative; }
+.steps li i { width: 24px; height: 24px; border-radius: 50%; background: var(--surface-sunk); display: grid; place-items: center; }
+.steps li.on { color: var(--ink); }
+.steps li.on i { background: var(--sage); box-shadow: 0 0 0 5px var(--sage-tint); }
+.steps li.on i::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #fff; }
+.sheet h2 { font-size: 25px; font-weight: 450; line-height: 1.1; margin: 0 0 2px; text-align: center; }
+.sheet .sub { text-align: center; font-size: 15px; color: var(--ink-2); margin: 0; }
+.gauge { display: block; margin: 4px auto 0; }
+.gauge-read { text-align: center; margin-top: -88px; position: relative; }
+.gauge-read .ok { display: inline-flex; align-items: center; gap: 6px; font: 500 23px/1 var(--font-display); font-variation-settings: var(--soft); color: var(--sage-deep); }
+.gauge-read .ok svg { color: #fff; background: var(--sage); border-radius: 50%; padding: 3px; }
+.gauge-read p { margin: 6px 0 0; font-size: 14px; color: var(--ink-2); }
+.howto { list-style: none; margin: 42px 0 10px; padding: 0; display: grid; gap: 6px; }
+.howto li { display: flex; gap: 12px; align-items: center; font-size: 15px; line-height: 1.3; }
+.howto li .ic { width: 30px; height: 30px; border-radius: 50%; background: var(--linen); display: grid; place-items: center; color: var(--ink-2); flex: none; }
+.howto li.done .ic { background: var(--sage-tint); color: var(--sage-deep); }
+.next { display: flex; gap: 12px; align-items: center; padding: 8px 14px 8px 10px; border-radius: var(--r-md); background: var(--linen); margin-bottom: auto; }
+.next p { margin: 0; font-size: 14px; line-height: 1.35; color: var(--ink-2); }
+.next p b { display: block; color: var(--ink); font: 500 16px/1.2 var(--font-display); font-variation-settings: var(--soft); margin-bottom: 2px; }
+.sheet .btn { width: 100%; min-height: 52px; font-size: 17px; margin-top: 12px; flex: none; }
+
+/* ===================================================================
+   3. LIVE PACED SESSION
+   =================================================================== */
+.live { background: radial-gradient(120% 70% at 50% 42%, #F6F3EE 0%, var(--linen) 70%); }
+.live-top { position: absolute; top: 58px; left: var(--gutter); right: var(--gutter); display: flex; justify-content: space-between; align-items: center; }
+.live-top .kind b { display: block; font: 500 18px/1.2 var(--font-display); font-variation-settings: var(--soft); }
+.live-top .kind span { font-size: 14px; color: var(--ink-2); }
+.sound { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px 0 12px; border-radius: var(--r-pill); background: var(--surface); box-shadow: var(--shadow-rest); font-size: 14px; font-weight: 600; color: var(--ink); border: 0; }
+.sound .on-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sage); }
+.cue { position: absolute; top: 132px; left: 0; right: 0; text-align: center; }
+.cue h2 { margin: 0; font-size: 44px; font-weight: 400; font-style: italic; color: var(--inhale-ink); line-height: 1; }
+.cue p { margin: 8px 0 0; font-size: 16px; color: var(--ink-2); }
+.balloon { position: absolute; top: 214px; left: 0; }
+.time-words { position: absolute; top: 566px; left: 0; right: 0; text-align: center; font-size: 15px; color: var(--ink-2); }
+.time-words b { color: var(--ink); font-weight: 600; }
+.strip { position: absolute; top: 606px; left: var(--gutter); right: var(--gutter); height: 92px; border-radius: var(--r-md); background: rgba(251,250,247,.75); overflow: hidden; }
+.strip svg { display: block; }
+.strip .lbl { position: absolute; right: 12px; top: 8px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.controls { position: absolute; left: 0; right: 0; bottom: 40px; display: flex; justify-content: center; align-items: center; gap: 28px; }
+.ctl { width: 56px; height: 56px; border-radius: 50%; border: 0; display: grid; place-items: center; background: var(--surface); color: var(--ink); box-shadow: var(--shadow-rest); }
+.ctl.main { width: 72px; height: 72px; background: var(--ink); color: var(--linen); }
+.ctl-label { display: block; text-align: center; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-top: 6px; }
+
+/* ===================================================================
+   4. REVIEW
+   =================================================================== */
+.rev-top { position: absolute; top: 54px; left: 8px; right: var(--gutter); height: 48px; display: flex; align-items: center; justify-content: space-between; }
+.rev-top .back { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding-right: 8px; color: var(--sage-deep); font-weight: 600; font-size: 16px; }
+.rev-top .when { font-size: 14px; color: var(--ink-2); }
+.rev-body { position: absolute; top: 102px; left: 0; right: 0; bottom: 92px; overflow: hidden; padding: 0 var(--gutter); }
+.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 2px; }
+.hero .word { font-size: var(--t-hero); font-weight: 420; line-height: .95; }
+.hero .val { font-size: 30px; color: var(--ink-2); font-weight: 350; margin-left: 10px; }
+.hero-sub { font-size: 15px; color: var(--ink-2); margin: 6px 0 0; }
+.hero-sub b { color: var(--sage-deep); }
+.why { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--sage); color: #fff; flex: none; }
+.explain {
+  position: relative; margin: 10px 0 10px; padding: 10px 14px 10px; border-radius: var(--r-md);
+  background: var(--ink); color: #F4F2EE; font-size: 14px; line-height: 1.4;
+}
+.explain::before { content: ''; position: absolute; top: -7px; right: 16px; width: 14px; height: 14px; background: var(--ink); transform: rotate(45deg); border-radius: 3px; }
+.explain b { font: 500 16px/1.2 var(--font-display); font-variation-settings: var(--soft); display: block; margin-bottom: 3px; color: #fff; }
+.explain .scale { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 12px; color: #D7D4CE; }
+.explain .scale svg { flex: 1; }
+.pairs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.pair { padding: 10px 14px 6px; }
+.pair h3 { margin: 0 0 4px; font: 500 19px/1.2 var(--font-display); font-variation-settings: var(--soft); }
+.pair .ln { display: flex; align-items: center; justify-content: space-between; min-height: 30px; font-size: 15px; }
+.pair .ln .k { display: inline-flex; align-items: center; gap: 7px; }
+.pair .ln .k .dir { font-size: 12px; font-weight: 700; }
+.pair .ln.in .dir { color: var(--inhale-ink); }
+.pair .ln.out .dir { color: var(--exhale-ink); }
+.pair .ln .s { font-weight: 600; }
+.pair .ln .s small { font-weight: 500; color: var(--ink-2); font-size: 13px; }
+.smooth { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--ink-2); padding: 8px 4px 2px; }
+.smooth b { color: var(--ink); font-weight: 600; }
+.wave-card { margin-top: 8px; padding: 10px 0 8px; }
+.chips { display: flex; gap: 4px; padding: 0 10px; }
+.chip { min-height: 36px; min-width: 44px; padding: 0 11px; border-radius: var(--r-pill); border: 0; background: transparent; font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.chip.on { background: var(--ink); color: var(--linen); }
+.wave-key { display: flex; gap: 14px; padding: 0 14px; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+.wave-key i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.scrub { margin: 4px 14px 0; height: 6px; border-radius: 3px; background: var(--surface-sunk); position: relative; }
+.scrub span { position: absolute; top: 0; bottom: 0; border-radius: 3px; background: var(--ink-3); }
+.note { margin-top: 10px; display: flex; gap: 12px; }
+.note .q { font: 400 italic 15px/1.38 var(--font-display); font-variation-settings: var(--soft); color: var(--ink); margin: 0; }
+.note .who { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.rev-actions { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; padding: 10px var(--gutter) 34px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: var(--linen); box-shadow: 0 -14px 24px -18px rgba(60, 52, 40, .25); z-index: 5; }
+.rev-actions .btn { min-height: 48px; font-size: 15px; }
+.rev-actions .synced { font-weight: 500; font-size: 13px; opacity: .85; }
+</style>
+</head>
+<body>
+<main class="bb-page">
+  <header class="page-head">
+    <div>
+      <h1 id="dir-name">Soft Organic</h1>
+      <p id="dir-line"></p>
+    </div>
+    <div class="page-meta">
+      <ul class="swatches" id="dir-swatches"></ul>
+      <div class="page-fonts" id="dir-fonts"></div>
+      <span class="tag" id="dir-best"></span>
+    </div>
+  </header>
+
+  <div class="bb-row">
+    <figure class="bb-shot" data-screen="home">
+      <div class="bb-phone" id="phone-home"></div>
+      <figcaption>Home dashboard (returning user)</figcaption>
+    </figure>
+    <figure class="bb-shot" data-screen="locked">
+      <div class="bb-phone" id="phone-locked"></div>
+      <figcaption>First run: locked dashboard + strap tension</figcaption>
+    </figure>
+    <figure class="bb-shot" data-screen="live">
+      <div class="bb-phone" id="phone-live"></div>
+      <figcaption>Live paced session, 5-5, mid-inhale</figcaption>
+    </figure>
+    <figure class="bb-shot" data-screen="review">
+      <div class="bb-phone" id="phone-review"></div>
+      <figcaption>Session review (paced)</figcaption>
+    </figure>
+  </div>
+</main>
+
+<script src="../../shared/mock-data.js"></script>
+<script src="../../shared/directions.js"></script>
+<script src="../../shared/bb.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = BB.data, H = D.helpers;
+  var DIR = BB_DIRECTIONS.filter(function (d) { return d.id === '03-soft-organic'; })[0];
+
+  // ---------------------------------------------------------------- page header
+  document.getElementById('dir-line').textContent = DIR.positioning;
+  document.getElementById('dir-swatches').innerHTML = DIR.swatches.map(function (s) {
+    return '<li><span style="background:' + s.hex + '"></span>' + s.name + '</li>';
+  }).join('');
+  document.getElementById('dir-fonts').innerHTML = '<b>' + DIR.fonts[0] + '</b> (soft axis) + <b>' + DIR.fonts[1] + '</b>';
+  document.getElementById('dir-best').textContent = 'Best for: ' + DIR.bestFor;
+
+  // ---------------------------------------------------------------- helpers
+  function phone(id, inner) {
+    document.getElementById(id).innerHTML = BB.statusBar() + inner + BB.homeIndicator();
+  }
+  function band(score) { return H.scoreWord(score).band; }
+  function scoreLine(score) {
+    return H.formatScore(score) + ' · ' + H.scoreWord(score).word;
+  }
+  function tabbar(active) {
+    var tabs = [['today', 'Today'], ['breathe', 'Breathe'], ['history', 'History'], ['profile', 'Profile']];
+    return '<nav class="tabbar" aria-label="Main">' + tabs.map(function (t) {
+      return '<a class="tab' + (t[0] === active ? ' on' : '') + '"' + (t[0] === active ? ' aria-current="page"' : '') + '>' +
+        BB.icon(t[0], 24) + t[1] + '</a>';
+    }).join('') + '</nav>';
+  }
+
+  /* Organic blob: a circle whose radius breathes with a few low harmonics. */
+  function blob(cx, cy, R, wobble, seed, n) {
+    n = n || 72;
+    var pts = [];
+    for (var i = 0; i < n; i++) {
+      var a = (i / n) * Math.PI * 2;
+      var k = 1 + wobble * (Math.sin(3 * a + seed) * 0.6 + Math.sin(5 * a + seed * 1.7) * 0.3 + Math.sin(2 * a - seed) * 0.4);
+      pts.push([+(cx + Math.cos(a) * R * k).toFixed(1), +(cy + Math.sin(a) * R * k * 1.03).toFixed(1)]);
+    }
+    pts.push(pts[0], pts[1], pts[2]);
+    var d = BB.smoothPath(pts.slice(0, n + 1));
+    return d + 'Z';
+  }
+
+  var paced = D.sessions.filter(function (s) { return s.type === 'Paced'; });
+  var opens = D.sessions.filter(function (s) { return s.type === 'Open'; });
+  var latest = D.latestPaced;
+  var recent = D.sessions.slice(-3).reverse();
+
+  // ================================================================ 1. HOME
+  (function home() {
+    // session miniature: whole session, hills and valleys
+    var mini = BB.waveSVG({
+      samples: latest.userWave, hz: latest.sampleHz, t0: 0, t1: 120,
+      width: 350, height: 40, range: 3.6, area: true, labels: false, stroke: 1.4,
+      pad: { l: 20, r: 20, t: 2, b: 2 }, maxPts: 500,
+      title: 'First two minutes of the session: inhale above the line, exhale below'
+    });
+
+    // trend of paced totals
+    var vals = paced.map(function (s) { return s.scores.total; });
+    var TW = 216, TH = 64;
+    var xy = BB.spark(vals, TW, TH, 10, 4, 9);
+    var area = BB.areaPath(xy, TH - 2, true);
+    var trend = '<svg width="' + TW + '" height="' + (TH + 18) + '" viewBox="0 0 ' + TW + ' ' + (TH + 18) + '" role="img" aria-label="Paced Breath Scores from ' +
+      H.formatScore(vals[0]) + ' to ' + H.formatScore(vals[vals.length - 1]) + ' over six sessions">' +
+      '<path d="' + area + '" fill="var(--sage-tint)" opacity=".7"/>' +
+      '<path d="' + BB.smoothPath(xy) + '" fill="none" stroke="var(--sage)" stroke-width="2.2" stroke-linecap="round"/>' +
+      xy.map(function (p, i) {
+        var last = i === xy.length - 1;
+        return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (last ? 5 : 3) + '" fill="' + (last ? 'var(--sage-deep)' : 'var(--surface)') + '" stroke="var(--sage)" stroke-width="2"/>';
+      }).join('') +
+      '<text x="' + xy[0][0] + '" y="' + (xy[0][1] - 10) + '" font-size="13" font-weight="600" fill="var(--ink-2)" text-anchor="start">' + H.formatScore(vals[0]) + '</text>' +
+      '<text x="' + (xy[xy.length - 1][0]) + '" y="' + (xy[xy.length - 1][1] - 11) + '" font-size="13" font-weight="700" fill="var(--sage-deep)" text-anchor="end">' + H.formatScore(vals[vals.length - 1]) + '</text>' +
+      '<text x="' + xy[0][0] + '" y="' + (TH + 15) + '" font-size="12" fill="var(--ink-2)">' + BB.fmtDate(paced[0].date) + '</text>' +
+      '<text x="' + xy[xy.length - 1][0] + '" y="' + (TH + 15) + '" font-size="12" fill="var(--ink-2)" text-anchor="end">' + BB.fmtDate(paced[paced.length - 1].date) + '</text>' +
+      '</svg>';
+
+    // open sessions: share of time in the normal range, small separate bars
+    var cw = 88, ch = 30, bw = 14;
+    var calmBars = '<svg width="' + cw + '" height="' + ch + '" viewBox="0 0 ' + cw + ' ' + ch + '" aria-hidden="true">' +
+      opens.map(function (s, i) {
+        var h = Math.round((s.open.inRange / 100) * ch);
+        var last = i === opens.length - 1;
+        return '<rect x="' + (i * (bw + 10)) + '" y="' + (ch - h) + '" width="' + bw + '" height="' + h + '" rx="7" fill="' + (last ? 'var(--sage)' : 'rgba(79,125,94,.35)') + '"/>';
+      }).join('') + '</svg>';
+    var firstOpen = opens[0].open.inRange, lastOpen = opens[opens.length - 1].open.inRange;
+
+    var rows = recent.map(function (s) {
+      var right, sub;
+      if (s.type === 'Paced') {
+        right = '<span class="leaf ' + band(s.scores.total) + '"></span>' + scoreLine(s.scores.total);
+        sub = 'Paced ' + s.pacer + ' · ' + BB.fmtClock(s.duration);
+      } else {
+        right = '<span>' + s.open.rate + ' br/min<small>' + s.open.inRange + '% in calm range</small></span>';
+        sub = 'Open · ' + BB.fmtClock(s.duration);
+      }
+      return '<div class="row"><span class="glyph">' + BB.icon(s.type === 'Paced' ? 'balloon' : 'breathe', 20) + '</span>' +
+        '<span class="t"><b>' + BB.fmtDate(s.date, true) + '</b><span>' + sub + '</span></span>' +
+        '<span class="v">' + right + '</span></div>';
+    }).join('');
+
+    phone('phone-home',
+      '<div class="bb-screen">' +
+        '<div class="home-top"><span class="date">' + D.today.label + '</span><span class="avatar" aria-label="Profile, ' + D.user.name + '">' + D.user.initials + '</span></div>' +
+        '<div class="home-body pad">' +
+          '<h2 class="greet disp">Good morning, <em>' + D.user.firstName + '.</em></h2>' +
+          '<div class="status-line">' +
+            '<span class="ok">' + BB.icon('bluetooth', 16) + 'Band on · ' + D.device.battery + '%</span>' +
+            '<span>' + BB.icon('cloudCheck', 17) + D.brand.cloud + ' synced ' + D.cloud.lastSync + '</span>' +
+          '</div>' +
+          '<section class="card latest" aria-label="Latest session">' +
+            '<div class="latest-head"><span class="what">Yesterday · ' + latest.pacerLabel + ' · ' + latest.durationLabel + '</span></div>' +
+            '<div class="big"><span class="word disp">' + H.scoreWord(latest.scores.total).word + '</span><span class="val disp num">' + H.formatScore(latest.scores.total) + '</span></div>' +
+            '<span class="delta"><span class="up">' + BB.icon('chevronRight', 14) + '</span>' + 'Up from ' + H.formatScore(latest.previousTotal) + ' last time</span>' +
+            '<span class="mini">' + mini + '</span>' +
+            '<div class="latest-foot"><span class="key"><span><i style="background:var(--inhale)"></i>Inhale</span><span><i style="background:var(--exhale)"></i>Exhale</span></span>' +
+              '<a class="link">' + BB.icon('help', 18) + 'How scores work</a></div>' +
+          '</section>' +
+          '<div class="quick">' +
+            '<button class="btn btn-sage">Paced breathing<small>5-5 pacer</small></button>' +
+            '<button class="btn btn-soft">Open breathing<small>Free, no pacer</small></button>' +
+          '</div>' +
+          '<section class="trend" aria-label="Score trend">' +
+            '<div><h3>Steadily rising</h3><p>Paced Breath Score, last six</p>' + trend + '</div>' +
+            '<div class="calm"><b class="num">' + lastOpen + '%</b><span>calm range in open sessions, from ' + firstOpen + '%</span>' + calmBars + '</div>' +
+          '</section>' +
+          '<section class="recent" aria-label="Recent sessions">' +
+            '<div class="recent-head"><h3>Recent</h3><a class="link">See all</a></div>' + rows +
+          '</section>' +
+        '</div>' +
+        tabbar('today') +
+      '</div>');
+  })();
+
+  // ================================================================ 2. LOCKED
+  (function locked() {
+    var t = D.calibration.tension;
+    // semicircle gauge, 0..1 left to right
+    var W = 270, Hh = 150, cx = W / 2, cy = 116, R = 100, sw = 16;
+    function pt(v, r) { var a = Math.PI * (1 - v); return [cx + Math.cos(a) * r, cy - Math.sin(a) * r]; }
+    function arc(v0, v1, r) {
+      var a = pt(v0, r), b = pt(v1, r);
+      return 'M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'A' + r + ' ' + r + ' 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1);
+    }
+    var knob = pt(t.value, R);
+    var gauge = '<svg class="gauge" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Strap tension ' + Math.round(t.value * 100) + ' percent, inside the correct range">' +
+      '<path d="' + arc(0.0, t.rangeLow - 0.012, R) + '" stroke="var(--surface-sunk)" stroke-width="' + sw + '" fill="none" stroke-linecap="round"/>' +
+      '<path d="' + arc(t.rangeHigh + 0.012, 1, R) + '" stroke="var(--clay-tint)" stroke-width="' + sw + '" fill="none" stroke-linecap="round"/>' +
+      '<path d="' + arc(t.rangeLow, t.rangeHigh, R) + '" stroke="var(--sage)" stroke-width="' + (sw + 6) + '" fill="none" stroke-linecap="round"/>' +
+            '<circle cx="' + knob[0].toFixed(1) + '" cy="' + knob[1].toFixed(1) + '" r="13" fill="#fff" stroke="var(--sage-deep)" stroke-width="3"/>' +
+      '<text x="' + (cx - R) + '" y="' + (cy + 26) + '" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink-2)">Loose</text>' +
+      '<text x="' + (cx + R) + '" y="' + (cy + 26) + '" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink-2)">Tight</text>' +
+      '</svg>';
+
+    // tiny balloon for the next step
+    var nextBalloon = '<svg width="38" height="44" viewBox="0 0 54 62" aria-hidden="true">' +
+      '<defs><radialGradient id="nb" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#F4D9DB"/><stop offset="1" stop-color="#DFA0A6"/></radialGradient></defs>' +
+      '<path d="' + blob(27, 25, 21, 0.03, 1.2, 48) + '" fill="url(#nb)"/>' +
+      '<path d="M24 47l3-4 3 4z" fill="#DFA0A6"/><path d="M27 47c0 5-4 6-3 12" stroke="var(--ink-3)" stroke-width="1.4" fill="none" stroke-linecap="round"/></svg>';
+
+    phone('phone-locked',
+      '<div class="bb-screen">' +
+        '<div class="locked-dash" aria-hidden="true">' +
+          '<div class="home-top"><span class="date">' + D.today.label + '</span><span class="avatar">' + D.user.initials + '</span></div>' +
+          '<div class="home-body pad">' +
+            '<h2 class="greet disp">Welcome, <em>' + D.user.firstName + '.</em></h2>' +
+            '<div class="ghost-card"><span class="ghost-line" style="width:38%"></span><span class="ghost-line" style="width:70%"></span></div>' +
+            '<div class="quick"><button class="btn btn-sage" disabled>Paced breathing<small>5-5 pacer</small></button><button class="btn btn-soft" disabled>Open breathing<small>Free, no pacer</small></button></div>' +
+          '</div>' + tabbar('today') +
+        '</div>' +
+        '<div class="lock-scrim"></div>' +
+        '<span class="lock-chip">' + BB.icon('lock', 18) + 'Opens after your first calibration</span>' +
+        '<section class="sheet" role="dialog" aria-label="Strap tension">' +
+          '<div class="grabber"></div>' +
+          '<ol class="steps"><li class="on" aria-current="step"><i></i>Strap tension</li><li><i></i>Balloon breaths</li><li><i></i>Ready</li></ol>' +
+          '<h2 class="disp">Snug, not tight</h2>' +
+          '<p class="sub">Your band is reading the right tension.</p>' +
+          gauge +
+          '<div class="gauge-read"><span class="ok">' + BB.icon('check', 22) + 'Just right</span><p>Hold it there and close the clip</p></div>' +
+          '<ul class="howto">' +
+            '<li class="done"><span class="ic">' + BB.icon('strap', 18) + '</span><span>Strap sits between your belly button and the bottom of your ribs.</span></li>' +
+            '<li class="done"><span class="ic">' + BB.icon('lungs', 18) + '</span><span>Pull your stomach in and tighten until the gauge turns green.</span></li>' +
+            '<li><span class="ic">' + BB.icon('lock', 18) + '</span><span>Lock the clip, then breathe out and relax.</span></li>' +
+          '</ul>' +
+          '<div class="next">' + nextBalloon + '<p><b>Next: imagine your belly is a balloon</b>A few deep breaths set your range.</p></div>' +
+          '<button class="btn btn-sage">Continue to pre-calibration</button>' +
+        '</section>' +
+      '</div>');
+  })();
+
+  // ================================================================ 3. LIVE
+  (function live() {
+    var L = BB.liveState();
+    var W = 390, Hh = 340, cx = 195, cy = 170;
+    var rMin = 66, rMax = 128;
+    var pr = rMin + L.pacerSize * (rMax - rMin);
+    var ur = rMin + L.userSize * (rMax - rMin);
+    var ringR = 154;
+    var circ = 2 * Math.PI * ringR;
+    var done = circ * L.progress;
+
+    var svg = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Pacer balloon filling on the inhale; your breath is just inside it. Session ring just past halfway.">' +
+      '<defs>' +
+        '<radialGradient id="bal" cx="42%" cy="36%" r="72%"><stop offset="0" stop-color="#F7E3E4"/><stop offset=".6" stop-color="#E7B3B8"/><stop offset="1" stop-color="#D98990"/></radialGradient>' +
+        '<radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset=".6" stop-color="rgba(201,80,90,.10)"/><stop offset="1" stop-color="rgba(201,80,90,0)"/></radialGradient>' +
+      '</defs>' +
+      // session ring: track + elapsed arc from 12 o'clock
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + ringR + '" fill="none" stroke="rgba(44,43,48,.08)" stroke-width="6"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + ringR + '" fill="none" stroke="var(--sage)" stroke-width="6" stroke-linecap="round" stroke-dasharray="' + done.toFixed(1) + ' ' + circ.toFixed(1) + '" transform="rotate(-90 ' + cx + ' ' + cy + ')"/>' +
+      // full-inhale and full-exhale guides
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + rMax + '" fill="none" stroke="rgba(44,43,48,.10)" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>' +
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + rMin + '" fill="none" stroke="rgba(44,43,48,.10)" stroke-width="1.2" stroke-dasharray="2 6" stroke-linecap="round"/>' +
+      // pacer balloon (translucent, rose because it is inhaling)
+      '<circle cx="' + cx + '" cy="' + cy + '" r="' + (pr + 26) + '" fill="url(#halo)"/>' +
+      '<path d="' + blob(cx, cy, pr, 0.022, 0.8) + '" fill="url(#bal)" opacity=".92"/>' +
+      '<path d="M' + (cx - 6) + ' ' + (cy + pr * 1.03 + 9) + 'l6-8 6 8z" fill="#D98990"/>' +
+      // your breath: outline that wobbles, a touch behind the pacer
+      '<path d="' + blob(cx, cy, ur, 0.032, 2.6) + '" fill="none" stroke="var(--inhale-ink)" stroke-width="3" stroke-linecap="round"/>' +
+      '<text x="' + cx + '" y="' + (cy + 5) + '" text-anchor="middle" font-family="Figtree" font-size="13" font-weight="700" fill="var(--inhale-ink)" letter-spacing=".02em">IN</text>' +
+            '</svg>';
+
+    // last 20 s as a line pacer
+    var t1 = L.t, t0 = t1 - 20;
+    var SW = 350, SH = 92, pad = { l: 34, r: 14, t: 12, b: 12 };
+    var strip = BB.waveSVG({
+      samples: latest.userWave, pacer: latest.pacerWave, hz: latest.sampleHz, t0: t0, t1: t1,
+      width: SW, height: SH, range: 3.6, stroke: 2.4, pacerStroke: 9, pad: pad, area: true,
+      title: 'Last 20 seconds: your line against the pacer band, inhale above the midline'
+    });
+    var boxH = SH - pad.t - pad.b;
+    var uy = pad.t + boxH / 2 - (L.user / 3.6) * (boxH / 2);
+    var py = pad.t + boxH / 2 - (L.pacer / 3.6) * (boxH / 2);
+    strip = strip.replace('</svg>',
+      '<circle cx="' + (SW - pad.r) + '" cy="' + py.toFixed(1) + '" r="6" fill="var(--pacer-ghost)"/>' +
+      '<circle cx="' + (SW - pad.r) + '" cy="' + uy.toFixed(1) + '" r="5" fill="' + (L.user >= 0 ? 'var(--inhale)' : 'var(--exhale)') + '" stroke="#fff" stroke-width="2"/></svg>');
+
+    // time as words, no digits
+    var phrase = L.progress < 0.3 ? 'Settling in' : L.progress < 0.48 ? 'Almost halfway' : L.progress < 0.5 ? 'Halfway there' : L.progress < 0.6 ? 'Just past halfway' : L.progress < 0.85 ? 'Into the second half' : 'Nearly done';
+
+    phone('phone-live',
+      '<div class="bb-screen live">' +
+        '<div class="live-top">' +
+          '<div class="kind"><b>Paced breathing</b><span>Five in, five out</span></div>' +
+          '<button class="sound" aria-pressed="true">' + BB.icon('note', 18) + 'Notes on<span class="on-dot"></span></button>' +
+        '</div>' +
+        '<div class="cue"><h2 class="disp">Breathe in</h2><p>Let your belly fill like a balloon</p></div>' +
+        '<div class="balloon">' + svg + '</div>' +
+        '<p class="time-words"><b>' + phrase + '.</b> The ring fills as you go.</p>' +
+        '<div class="strip">' + strip + '</div>' +
+        '<div class="controls">' +
+          '<div><button class="ctl" aria-label="Stop and save">' + BB.icon('stop', 22) + '</button><span class="ctl-label">Stop</span></div>' +
+          '<div><button class="ctl main" aria-label="Pause">' + BB.icon('pause', 28) + '</button><span class="ctl-label">Pause</span></div>' +
+          '<div><button class="ctl" aria-label="Sound on: musical notes" aria-pressed="true">' + BB.icon('soundOn', 22) + '</button><span class="ctl-label">Sound</span></div>' +
+        '</div>' +
+      '</div>');
+  })();
+
+  // ================================================================ 4. REVIEW
+  (function review() {
+    var S = latest.scores;
+    function ln(dir, label, v) {
+      return '<div class="ln ' + dir + '"><span class="k"><span class="leaf ' + band(v) + '"></span><span class="dir">' + label + '</span></span>' +
+        '<span class="s num">' + H.formatScore(v) + ' <small>' + H.scoreWord(v).word + '</small></span></div>';
+    }
+    // one-minute window around minute 3, where the note says rhythm slipped
+    var w0 = 150, w1 = 210;
+    var WW = 350, WH = 132;
+    var wave = BB.waveSVG({
+      samples: latest.userWave, pacer: latest.pacerWave, hz: latest.sampleHz, t0: w0, t1: w1,
+      width: WW, height: WH, range: 3.8, area: true, stroke: 2.2, pacerStroke: 8, ticks: true,
+      pad: { l: 36, r: 14, t: 8, b: 22 },
+      title: 'Minute 2:30 to 3:30, your breath against the pacer: inhale above the midline in rose, exhale below in blue'
+    });
+    // scale used in the explainer: 10 down to 1
+    var scale = '<svg height="10" viewBox="0 0 200 10" preserveAspectRatio="none" aria-hidden="true">' +
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (i) {
+        var op = (1 - i / 11).toFixed(2);
+        return '<rect x="' + (i * 20 + 1) + '" y="1" width="18" height="8" rx="4" fill="rgba(141,186,152,' + op + ')"/>';
+      }).join('') + '</svg>';
+
+    var chips = D.timeAxis.map(function (c) {
+      return '<button class="chip' + (c === '60 s' ? ' on' : '') + '"' + (c === '60 s' ? ' aria-pressed="true"' : '') + '>' + c + '</button>';
+    }).join('');
+
+    phone('phone-review',
+      '<div class="bb-screen">' +
+        '<div class="rev-top"><a class="back">' + BB.icon('chevronLeft', 22) + 'History</a><span class="when">' + latest.dateLabel + ' · ' + latest.time + '</span></div>' +
+        '<div class="rev-body">' +
+          '<div class="hero">' +
+            '<div><span class="word disp">' + H.scoreWord(S.total).word + '</span><span class="val disp num">' + H.formatScore(S.total) + '</span></div>' +
+            '<button class="why" aria-label="How scores work" aria-expanded="true">' + BB.icon('help', 22) + '</button>' +
+          '</div>' +
+          '<p class="hero-sub">Total Breath Score · ' + latest.pacerLabel + ' · ' + latest.durationLabel + ' · <b>up from ' + H.formatScore(latest.previousTotal) + '</b></p>' +
+          '<div class="explain" role="note"><b>How scores work</b>Within 10% of the pacer scores 10. Each further 10% off takes a point away, down to 1. Drifting beyond your usual range scores 1.' +
+            '<div class="scale"><span>10</span>' + scale + '<span>1</span></div></div>' +
+          '<div class="pairs">' +
+            '<section class="card pair"><h3>Timing</h3>' + ln('in', 'IN', S.timing.inhale) + ln('out', 'OUT', S.timing.exhale) + '</section>' +
+            '<section class="card pair"><h3>Depth</h3>' + ln('in', 'IN', S.depth.inhale) + ln('out', 'OUT', S.depth.exhale) + '</section>' +
+          '</div>' +
+          '<div class="smooth"><span>Smoothness</span><span>In <b>' + scoreLine(S.smoothness.inhale) + '</b> · Out <b>' + scoreLine(S.smoothness.exhale) + '</b></span></div>' +
+          '<section class="card wave-card" aria-label="Breathing waveform">' +
+            '<div class="chips" role="group" aria-label="Time window">' + chips + '</div>' +
+            wave +
+            '<div class="wave-key"><span><i style="background:var(--inhale)"></i>Inhale, above</span><span><i style="background:var(--exhale)"></i>Exhale, below</span><span><i style="background:rgba(44,43,48,.18)"></i>Pacer</span></div>' +
+            '<div class="scrub" aria-label="Showing 2:30 to 3:30 of 5:00"><span style="left:' + (w0 / latest.duration * 100) + '%;width:' + ((w1 - w0) / latest.duration * 100) + '%"></span></div>' +
+          '</section>' +
+          '<div class="note"><div><p class="q">“' + latest.note + '”</p></div></div>' +
+        '</div>' +
+        '<div class="rev-actions">' +
+          '<button class="btn btn-soft">' + BB.icon('pdf', 20) + 'Export PDF</button>' +
+          '<button class="btn btn-quiet">' + BB.icon('cloudCheck', 20) + D.brand.cloud + '</button>' +
+        '</div>' +
+      '</div>');
+  })();
+
+  BB.initPage();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+# Local-only working files (client source material, internal brief, export tooling, PNG exports)
+reference/
+brief.md
+tools/
+screenshots/
+.taste-skill/
+node_modules/
+.DS_Store
+Thumbs.db

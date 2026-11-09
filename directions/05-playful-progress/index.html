@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playful Progress · BreathBand®</title>
+<link rel="stylesheet" href="../../shared/fonts/fonts.css">
+<link rel="stylesheet" href="../../shared/frame.css">
+<style>
+/* ===================================================================
+   05 Playful Progress: design tokens (map 1:1 to a BreathbandTheme)
+   =================================================================== */
+:root {
+  /* colour */
+  --ground: #FBFAF6;
+  --surface: #FFFFFF;
+  --ink: #1B1D2A;
+  --ink-2: #4A4D5C;
+  --ink-3: #6B6E7C;
+  --line: #1B1D2A;
+  --mint: #CDEEDB;
+  --mint-ink: #17603A;
+  --sun: #FFD84D;
+  --sun-soft: #FFEDA6;
+  --sand: #F1E6D2;
+  --sand-2: #E6D7BC;
+  --go: #2BB673;            /* in range / ready */
+  --go-ink: #0E5A33;
+  --low: #C98A12;           /* lowest score band, never the inhale red */
+  --inhale: #EE4B45;
+  --inhale-soft: #FBD3D0;
+  --exhale: #2F7FEA;
+  --exhale-soft: #D3E3FB;
+  --scrim: rgba(27, 29, 42, .48);
+
+  /* type */
+  --font-display: 'Bricolage Grotesque', 'DM Sans', system-ui, sans-serif;
+  --font-ui: 'DM Sans', system-ui, sans-serif;
+  --fs-hero: 104px;
+  --fs-display: 34px;
+  --fs-title: 22px;
+  --fs-body: 16px;
+  --fs-small: 15px;
+  --fs-label: 13px;
+
+  /* shape + space */
+  --radius: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+  --border: 2px;
+  --s1: 8px;
+  --s2: 12px;
+  --s3: 20px;
+  --s4: 28px;
+  --s5: 40px;
+  --gutter: 18px;
+
+  /* elevation: hard offset ink, no blur */
+  --lift: 0 3px 0 var(--ink);
+  --lift-lg: 0 5px 0 var(--ink);
+
+  /* motion (Flutter: Curves / SpringDescription) */
+  --dur-press: 90ms;
+  --dur-ui: 220ms;
+  --dur-reward: 520ms;        /* score count-up, badge pop: spring damping 0.7 */
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-breath: cubic-bezier(.45, 0, .55, 1);  /* pacer: sine in-out, never bouncy */
+
+  --icon-stroke: 2;
+  --frame-ground: var(--ground);
+  --status-ink: var(--ink);
+  --page-ground: #EDEAE2;
+  --page-ink-2: #4A4D5C;
+}
+
+::selection { background: var(--sun); color: var(--ink); }
+
+body { font-family: var(--font-ui); color: var(--ink); }
+
+/* ---------------- page header (outside the phones) ---------------- */
+.dir-head { max-width: 1200px; margin-bottom: 36px; display: flex; flex-wrap: wrap; gap: 20px 48px; align-items: end; }
+.dir-head h1 { font: 800 56px/1 var(--font-display); letter-spacing: -0.03em; margin: 0 0 10px; }
+.dir-head p { font-size: 19px; margin: 0; color: var(--ink-2); }
+.dir-meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; font-size: 15px; }
+.dir-tag { background: var(--sun); border: var(--border) solid var(--ink); border-radius: var(--radius-pill); padding: 6px 14px; font-weight: 700; box-shadow: var(--lift); }
+.dir-swatches { display: flex; gap: 6px; }
+.dir-swatches span { width: 34px; height: 34px; border-radius: 10px; border: var(--border) solid var(--ink); }
+.dir-fonts { color: var(--ink-2); }
+
+/* ---------------- shared in-phone bits ---------------- */
+.bb-screen { font-family: var(--font-ui); font-size: var(--fs-body); line-height: 1.4; color: var(--ink); font-variant-numeric: tabular-nums; }
+.disp { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; }
+.card { background: var(--surface); border: var(--border) solid var(--line); border-radius: var(--radius); box-shadow: var(--lift); }
+.pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px;
+  border-radius: var(--radius-pill); border: var(--border) solid var(--line); background: var(--surface);
+  font-size: 14px; font-weight: 600; white-space: nowrap;
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 52px; padding: 0 20px; border-radius: var(--radius-pill);
+  border: var(--border) solid var(--line); background: var(--surface); box-shadow: var(--lift);
+  font: 700 17px/1 var(--font-ui); color: var(--ink); cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out), box-shadow var(--dur-press) var(--ease-out);
+}
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--ink); }
+.btn:focus-visible, .chip:focus-visible, .link:focus-visible { outline: 3px solid var(--exhale); outline-offset: 3px; }
+.btn-primary { background: var(--sun); }
+.btn-go { background: var(--go); }
+.link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 700; font-size: 15px; color: var(--ink); text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px; background: none; border: 0; padding: 0; cursor: pointer; }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid var(--ink); flex: none; }
+.dot-in { background: var(--inhale); }
+.dot-out { background: var(--exhale); }
+.muted { color: var(--ink-2); }
+
+/* tab bar */
+.tabbar {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 86px; padding: 6px 10px 0;
+  background: var(--ground); border-top: var(--border) solid var(--line);
+  display: grid; grid-template-columns: repeat(4, 1fr); z-index: 20;
+}
+.tab { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 48px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.tab .tab-ic { width: 52px; height: 30px; border-radius: var(--radius-pill); display: grid; place-items: center; }
+.tab.is-on { color: var(--ink); font-weight: 800; }
+.tab.is-on .tab-ic { background: var(--sun); border: var(--border) solid var(--ink); }
+
+/* ================= HOME ================= */
+.home { padding: 60px var(--gutter) 0; }
+.home-top { display: flex; align-items: center; gap: 8px; }
+.home-top .bb-mark { color: var(--ink); margin-right: 2px; }
+.pill .ok { width: 8px; height: 8px; border-radius: 50%; background: var(--go); }
+.greet { margin: 14px 0 0; font-size: var(--fs-display); line-height: 1.02; }
+.greet-sub { display: flex; align-items: center; gap: 6px; margin-top: 8px; font-size: var(--fs-small); color: var(--ink-2); }
+.greet-sub b { color: var(--ink); }
+.greet-sub .bb-icon { color: var(--inhale); }
+
+.hero {
+  margin-top: 12px; padding: 14px 16px 6px; background: var(--mint);
+  display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center;
+}
+.hero-meta { grid-column: 1 / -1; font-size: 14px; font-weight: 600; color: var(--mint-ink); }
+.hero-num { font-size: 92px; line-height: .9; margin-top: 2px; }
+.hero-word { font: 800 26px/1 var(--font-display); letter-spacing: -0.02em; }
+.hero-side { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.sticker { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: var(--radius-pill); background: var(--sun); border: var(--border) solid var(--ink); font-size: 13px; font-weight: 800; transform: rotate(-3deg); }
+.delta { font-size: 14px; font-weight: 600; color: var(--mint-ink); }
+.hero .link { grid-column: 1 / -1; font-size: 14px; }
+
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+.quick .btn { padding: 0 12px; font-size: 16px; }
+
+.trend { margin-top: 16px; padding: 14px 16px; background: var(--sand); display: grid; grid-template-columns: 1fr 112px; gap: 14px; }
+.trend h3, .recent h3 { margin: 0; font: 800 18px/1.1 var(--font-display); letter-spacing: -0.02em; }
+.trend .cap { font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.trend-side { border-left: var(--border) dashed rgba(27,29,42,.35); padding-left: 12px; }
+.trend-side .big { font: 800 24px/1 var(--font-display); margin-top: 6px; }
+
+.recent { margin-top: 10px; }
+.recent-head { display: flex; justify-content: space-between; align-items: center; }
+.rows { list-style: none; margin: 4px 0 0; padding: 0; }
+.rows li { display: flex; align-items: center; gap: 12px; min-height: 58px; border-bottom: 1.5px solid rgba(27,29,42,.14); }
+.rows .badge { width: 40px; height: 40px; border-radius: 12px; border: var(--border) solid var(--ink); display: grid; place-items: center; font: 800 15px/1 var(--font-display); flex: none; }
+.rows .b-paced { background: var(--sun-soft); }
+.rows .b-open { background: var(--mint); }
+.rows .what { flex: 1; min-width: 0; }
+.rows .what b { display: block; font-size: 16px; }
+.rows .what span { font-size: 13px; color: var(--ink-2); }
+.rows .val { text-align: right; font-size: 15px; font-weight: 700; }
+.rows .val span { display: block; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+
+/* ================= LOCKED ================= */
+.locked-bg { padding: 60px var(--gutter) 0; filter: grayscale(1); opacity: .42; }
+.locked-bg .ph { height: 120px; border-radius: var(--radius); background: var(--sand-2); margin-top: 16px; border: var(--border) dashed var(--ink); }
+.locked-scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 5; }
+.lock-badge { position: absolute; top: 132px; left: 50%; transform: translateX(-50%); z-index: 6; display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: var(--border) solid var(--ink); border-radius: var(--radius-pill); padding: 8px 14px; font-size: 14px; font-weight: 700; white-space: nowrap; box-shadow: var(--lift); }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--ground);
+  border-top: var(--border) solid var(--ink); border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 10px var(--gutter) 42px;
+}
+.grabber { width: 44px; height: 5px; border-radius: 3px; background: rgba(27,29,42,.3); margin: 0 auto 12px; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.steps .seg { height: 8px; border-radius: 4px; border: 1.5px solid var(--ink); background: var(--surface); }
+.steps .seg.on { background: var(--go); }
+.steps .lbl { font-size: 13px; font-weight: 600; color: var(--ink-2); margin-top: 6px; }
+.steps .lbl.on { color: var(--ink); font-weight: 800; }
+.sheet h2 { font-size: 30px; line-height: 1.02; margin: 14px 0 4px; }
+.sheet .lede { margin: 0; font-size: var(--fs-small); color: var(--ink-2); }
+.gauge-wrap { display: grid; grid-template-columns: 1fr; justify-items: center; margin-top: 4px; position: relative; }
+.gauge-read { position: absolute; top: 70px; left: 0; right: 0; text-align: center; }
+.gauge-read .state { display: inline-flex; align-items: center; gap: 6px; font: 800 24px/1 var(--font-display); color: var(--go-ink); }
+.gauge-read .sub { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.how { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: center; margin-top: 2px; }
+.how ol { margin: 0; padding: 0 0 0 20px; font-size: var(--fs-small); line-height: 1.32; }
+.how li { padding-left: 2px; margin: 0 0 6px; }
+.how li::marker { font-weight: 800; }
+.next { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; margin-top: 12px; padding: 10px 14px; background: var(--sand); border-radius: var(--radius); border: var(--border) solid var(--ink); }
+.next b { display: block; font-size: 15px; }
+.next span { font-size: 14px; color: var(--ink-2); display: block; line-height: 1.3; }
+.sheet .btn { width: 100%; margin-top: 14px; min-height: 56px; }
+
+/* ================= LIVE ================= */
+.live { padding: 60px var(--gutter) 0; text-align: center; }
+.live-top { display: flex; justify-content: space-between; align-items: center; }
+.live-top .pill { height: 44px; padding: 0 14px; font-size: 15px; }
+.pill-on { background: var(--sun); }
+.live-msg { margin: 10px 0 0; font-size: var(--fs-small); color: var(--ink-2); }
+.ring { display: block; margin: 0 auto; }
+.cue { margin-top: -8px; display: inline-flex; align-items: center; gap: 10px; font-size: 40px; line-height: 1; }
+.cue .arrow { width: 40px; height: 40px; border-radius: 50%; background: var(--inhale); border: var(--border) solid var(--ink); display: grid; place-items: center; color: var(--ink); }
+.cue-sub { margin: 8px 0 0; font-size: var(--fs-small); color: var(--ink-2); }
+.key { display: flex; justify-content: center; gap: 16px; margin-top: 8px; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.key i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; vertical-align: -2px; margin-right: 5px; }
+.strip { margin-top: 12px; padding: 8px 10px 6px; text-align: left; background: var(--surface); }
+.strip-head { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; padding: 0 2px 2px; }
+.strip-head span { color: var(--ink-2); font-weight: 600; }
+.controls { display: flex; justify-content: center; align-items: center; gap: 28px; margin-top: 12px; }
+.round { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.round .btn { width: 64px; height: 64px; min-height: 0; padding: 0; border-radius: 50%; }
+.round .btn-primary { width: 76px; height: 76px; }
+
+/* ================= REVIEW ================= */
+.review { padding: 56px var(--gutter) 0; }
+.rv-top { display: flex; justify-content: space-between; align-items: center; margin-left: -10px; }
+.rv-top .link { text-decoration: none; padding: 0 10px; }
+.rv-top .title { font-size: 15px; font-weight: 700; color: var(--ink-2); }
+.rv-hero { margin-top: 0; padding: 4px 16px 8px; background: var(--sun); display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: center; }
+.rv-hero .hero-num { font-size: 78px; }
+.rv-hero .meta { font-size: 13px; font-weight: 600; color: #5A4300; margin-top: 4px; }
+.grid4 { margin-top: 10px; padding: 8px 14px 2px; }
+.g-head, .g-row { display: grid; grid-template-columns: 88px 1fr 1fr; align-items: center; column-gap: 10px; }
+.g-head { font-size: 13px; font-weight: 700; padding-bottom: 4px; }
+.g-head span { display: inline-flex; align-items: center; gap: 6px; }
+.g-row { min-height: 44px; border-top: 1.5px solid rgba(27,29,42,.12); }
+.g-row .name { font: 800 16px/1.1 var(--font-display); letter-spacing: -0.01em; }
+.g-row .name small { display: block; font: 600 12px/1.2 var(--font-ui); color: var(--ink-2); letter-spacing: 0; }
+.g-cell { display: flex; align-items: center; gap: 8px; }
+.g-cell .n { font: 800 26px/1 var(--font-display); width: 22px; }
+.g-cell .w { font-size: 12px; font-weight: 600; color: var(--ink-2); line-height: 1.1; }
+.beads10 { display: flex; gap: 2px; margin-top: 4px; }
+.beads10 i { width: 6px; height: 6px; border-radius: 50%; background: var(--sand-2); }
+.beads10 i.f { background: var(--ink); }
+.g-row.secondary .n { font-size: 20px; }
+.g-row.secondary { min-height: 40px; }
+.legend { margin: 2px 0 0; padding: 8px 0 6px; border-top: 1.5px solid rgba(27,29,42,.12); font-size: 13px; line-height: 1.35; color: var(--ink-2); }
+.legend b { color: var(--ink); }
+.chart-card { margin-top: 10px; padding: 8px 10px 6px; }
+.chips { display: flex; gap: 6px; }
+.chip { flex: 1; min-height: 44px; border-radius: var(--radius-pill); border: var(--border) solid transparent; background: var(--sand); font: 700 14px/1 var(--font-ui); color: var(--ink); cursor: pointer; padding: 0; }
+.chip.is-on { background: var(--ink); color: var(--sun); }
+.scrub-row { display: flex; align-items: center; gap: 10px; margin: 2px 4px 0 32px; }
+.scrub { position: relative; flex: 1; height: 8px; border-radius: 4px; background: var(--sand); }
+.scrub i { position: absolute; top: -2px; height: 12px; border-radius: 6px; background: var(--ink); }
+.scrub-l { font-size: 12px; color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+.note { margin-top: 10px; display: grid; grid-template-columns: 24px 1fr; gap: 10px; font-size: var(--fs-small); line-height: 1.38; }
+.note b { display: block; font-size: 13px; color: var(--ink-2); }
+.note p { margin: 2px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.actions { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; padding: 10px var(--gutter) 34px; background: var(--ground); border-top: var(--border) solid var(--ink); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.actions .btn { min-height: 48px; font-size: 16px; padding: 0 12px; }
+
+/* waveform classes */
+.bb-w-in { stroke: var(--inhale); stroke-linecap: round; stroke-linejoin: round; }
+.bb-w-out { stroke: var(--exhale); stroke-linecap: round; stroke-linejoin: round; }
+.bb-w-pacer { stroke: var(--ink); opacity: .5; stroke-dasharray: 2 5; stroke-linecap: round; }
+.bb-w-mid { stroke: var(--ink); opacity: .4; }
+.bb-w-label { font: 700 12px var(--font-ui); fill: var(--ink-2); }
+.pw-line-in { stroke: var(--inhale); }
+.pw-line-out { stroke: var(--exhale); }
+.pw-fill-in { fill: var(--inhale-soft); }
+.pw-fill-out { fill: var(--exhale-soft); }
+.pw-pacer { stroke: var(--ink); opacity: .55; }
+.pw-mid { stroke: var(--ink); opacity: .45; }
+.pw-label { font: 700 12px var(--font-ui); fill: var(--ink-2); }
+.pw-best { fill: var(--sun); opacity: .55; }
+.pw-best-l { font: 800 12px var(--font-ui); fill: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .btn { transition: none; }
+}
+</style>
+</head>
+<body>
+<main class="bb-page">
+  <header class="dir-head" id="dirHead"></header>
+  <div class="bb-row">
+    <figure class="bb-shot" data-screen="home"><div class="bb-phone" id="ph-home"></div><figcaption>Home dashboard</figcaption></figure>
+    <figure class="bb-shot" data-screen="locked"><div class="bb-phone" id="ph-locked"></div><figcaption>First run: strap tension</figcaption></figure>
+    <figure class="bb-shot" data-screen="live"><div class="bb-phone" id="ph-live"></div><figcaption>Live paced session (5-5), mid-inhale</figcaption></figure>
+    <figure class="bb-shot" data-screen="review"><div class="bb-phone" id="ph-review"></div><figcaption>Session review (paced)</figcaption></figure>
+  </div>
+</main>
+
+<script src="../../shared/mock-data.js"></script>
+<script src="../../shared/directions.js"></script>
+<script src="../../shared/bb.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = BB.data, P = D.latestPaced, O = D.latestOpen, H = D.helpers;
+  var DIR = BB_DIRECTIONS.filter(function (d) { return d.id === '05-playful-progress'; })[0];
+  var ic = BB.icon;
+
+  // ---------- derived, honest-to-the-data progress facts ----------
+  var sessions = D.sessions.slice();
+  var paced = sessions.filter(function (s) { return s.type === 'Paced'; });
+  var open = sessions.filter(function (s) { return s.type === 'Open'; });
+  var best = Math.max.apply(null, paced.map(function (s) { return s.scores.total; }));
+  var isBest = P.scores.total === best;
+  // weeks (Mon-Sun) with 3+ sessions, counted back from last week
+  function weekKey(iso) { var d = new Date(iso + 'T12:00:00'); var day = (d.getDay() + 6) % 7; d.setDate(d.getDate() - day); return d.toISOString().slice(0, 10); }
+  var perWeek = {};
+  sessions.forEach(function (s) { var k = weekKey(s.date); perWeek[k] = (perWeek[k] || 0) + 1; });
+  var weeks = Object.keys(perWeek).sort().reverse();
+  var streak = 0;
+  for (var w = 0; w < weeks.length && perWeek[weeks[w]] >= 3; w++) streak++;
+  var lastWeekCount = perWeek[weeks[0]];
+  var firstRange = open[0].open.inRange, lastRange = open[open.length - 1].open.inRange;
+
+  function scoreBits(score) { return { n: H.formatScore(score), w: H.scoreWord(score).word }; }
+  function beads10(n) { var s = '<span class="beads10" aria-hidden="true">'; for (var i = 1; i <= 10; i++) s += '<i class="' + (i <= n ? 'f' : '') + '"></i>'; return s + '</span>'; }
+  function chrome(el, inner) { el.innerHTML = BB.statusBar() + inner + BB.homeIndicator(); }
+  function tabbar(active) {
+    var tabs = [['today', 'Today', 'today'], ['breathe', 'Breathe', 'breathe'], ['history', 'History', 'history'], ['profile', 'Profile', 'profile']];
+    return '<nav class="tabbar" aria-label="Main">' + tabs.map(function (t) {
+      return '<a class="tab' + (t[0] === active ? ' is-on' : '') + '"' + (t[0] === active ? ' aria-current="page"' : '') + '><span class="tab-ic">' + ic(t[2], 22) + '</span>' + t[1] + '</a>';
+    }).join('') + '</nav>';
+  }
+
+  // ---------- page header ----------
+  document.getElementById('dirHead').innerHTML =
+    '<div><h1>' + DIR.name + '</h1><p>' + DIR.positioning + '</p></div>' +
+    '<div class="dir-meta"><span class="dir-tag">Best for: ' + DIR.bestFor + '</span>' +
+    '<span class="dir-swatches">' + DIR.swatches.map(function (s) { return '<span title="' + s.name + ' ' + s.hex + '" style="background:' + s.hex + '"></span>'; }).join('') + '</span>' +
+    '<span class="dir-fonts">' + DIR.fonts.join(' + ') + '</span></div>';
+
+  // ================================================================ HOME
+  function trendBars() {
+    var W = 200, Hh = 96, lane = 16, n = paced.length, gap = 7, bw = (W - lane - gap * (n - 1)) / n, base = 78, top = 22, lo = 4, hi = 8;
+    var s = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Paced Breath Score by session, from ' + H.formatScore(paced[0].scores.total) + ' to ' + H.formatScore(P.scores.total) + '">';
+    // scale 4-8 so the rise reads; gridline + label at each end of the scale
+    [lo, hi].forEach(function (g) {
+      var gy = base - ((g - lo) / (hi - lo)) * (base - top);
+      s += '<line x1="' + lane + '" x2="' + W + '" y1="' + gy + '" y2="' + gy + '" stroke="var(--ink)" stroke-opacity=".25" stroke-dasharray="3 4"/>';
+      s += '<text x="0" y="' + (gy + 4) + '" style="font:600 12px var(--font-ui);fill:var(--ink-2)">' + g + '</text>';
+    });
+    paced.forEach(function (p, i) {
+      var v = p.scores.total, h = Math.max(6, ((v - lo) / (hi - lo)) * (base - top)), x = lane + i * (bw + gap), last = i === n - 1;
+      s += '<rect x="' + x + '" y="' + (base - h) + '" width="' + bw + '" height="' + h + '" rx="7" fill="' + (last ? 'var(--sun)' : 'var(--surface)') + '" stroke="var(--ink)" stroke-width="2"/>';
+      if (last || i === 0) s += '<text x="' + (x + bw / 2) + '" y="' + (base - h - 5) + '" text-anchor="middle" style="font:800 13px var(--font-ui);fill:var(--ink)">' + H.formatScore(v) + '</text>';
+      s += '<text x="' + (x + bw / 2) + '" y="' + (Hh - 2) + '" text-anchor="middle" style="font:600 12px var(--font-ui);fill:var(--ink-2)">' + BB.fmtDate(p.date).split(' ')[0] + '</text>';
+    });
+    return s + '</svg>';
+  }
+  function rangeSteps() {
+    var W = 98, Hh = 40, pts = BB.spark(open.map(function (o) { return o.open.inRange; }), W, Hh, 6, 40, 80);
+    return '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Open sessions, time in normal range from ' + firstRange + '% to ' + lastRange + '%">' +
+      '<path d="' + BB.linePath(pts) + '" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>' +
+      pts.map(function (p, i) { return '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (i === pts.length - 1 ? 5 : 3.5) + '" fill="' + (i === pts.length - 1 ? 'var(--go)' : 'var(--surface)') + '" stroke="var(--ink)" stroke-width="2"/>'; }).join('') + '</svg>';
+  }
+  function recentRows(count) {
+    return sessions.slice().reverse().slice(0, count).map(function (s) {
+      var isP = s.type === 'Paced';
+      var val = isP
+        ? H.formatScore(s.scores.total) + '<span>' + H.scoreWord(s.scores.total).word + '</span>'
+        : s.open.inRange + '% in range<span>' + s.open.rate + ' br/min</span>';
+      return '<li><span class="badge ' + (isP ? 'b-paced' : 'b-open') + '" aria-hidden="true">' + (isP ? s.pacer.replace('-', '·') : ic('lungs', 22)) + '</span>' +
+        '<span class="what"><b>' + (isP ? 'Paced ' + s.pacer : 'Open session') + '</b><span>' + BB.fmtDate(s.date, true) + ' · ' + BB.fmtClock(s.duration) + '</span></span>' +
+        '<span class="val">' + val + '</span></li>';
+    }).join('');
+  }
+  var sb = scoreBits(P.scores.total);
+  chrome(document.getElementById('ph-home'),
+    '<div class="bb-screen home">' +
+      '<div class="home-top">' + BB.mark(30, 'solid') +
+        '<span class="pill"><span class="ok"></span>' + ic('bluetooth', 16) + 'Strap · ' + D.device.battery + '%</span>' +
+        '<span class="pill">' + ic('cloudCheck', 18) + 'Synced ' + D.cloud.lastSync + '</span>' +
+      '</div>' +
+      '<h1 class="greet disp">Morning, ' + D.user.firstName + '.</h1>' +
+      '<div class="greet-sub">' + ic('flame', 18) + '<span><b>' + streak + '-week streak</b> · ' + lastWeekCount + ' sessions last week</span></div>' +
+      '<section class="hero card" aria-label="Latest session">' +
+        '<div class="hero-meta">Last session · ' + P.pacerLabel + ' · ' + BB.fmtDate(P.date, true) + ' · ' + P.durationLabel + '</div>' +
+        '<div class="hero-num disp">' + sb.n + '</div>' +
+        '<div class="hero-side"><div class="hero-word">' + sb.w + '</div>' +
+          (isBest ? '<span class="sticker">' + ic('trophy', 15) + 'Personal best</span>' : '') +
+          '<div class="delta">Up ' + H.formatScore(P.scores.total - P.previousTotal) + ' on last time</div></div>' +
+        '<button class="link" type="button">' + ic('help', 18) + 'How scores work</button>' +
+      '</section>' +
+      '<div class="quick">' +
+        '<button class="btn btn-primary" type="button">' + ic('play', 18) + 'Paced 5-5</button>' +
+        '<button class="btn" type="button">' + ic('lungs', 20) + 'Open session</button>' +
+      '</div>' +
+      '<section class="trend card" aria-label="Progress">' +
+        '<div><h3>Breath Score</h3><div class="cap">Paced sessions since ' + BB.fmtDate(paced[0].date) + '</div>' + trendBars() + '</div>' +
+        '<div class="trend-side"><h3>In range</h3><div class="cap">Open sessions</div><div class="big">' + firstRange + '→' + lastRange + '%</div>' + rangeSteps() + '</div>' +
+      '</section>' +
+      '<section class="recent" aria-label="Recent sessions"><div class="recent-head"><h3>Recent</h3><button class="link" type="button">All ' + sessions.length + '</button></div>' +
+        '<ul class="rows">' + recentRows(4) + '</ul></section>' +
+    '</div>' + tabbar('today'));
+
+  // ================================================================ LOCKED
+  function gaugeSVG() {
+    var T = D.calibration.tension, cx = 150, cy = 124, R = 102, W = 300, Hh = 158;
+    function pt(f, r) { var a = Math.PI * (1 - f); return [cx + r * Math.cos(a), cy - r * Math.sin(a)]; }
+    function arc(f0, f1, r) { var a = pt(f0, r), b = pt(f1, r); return 'M' + a[0].toFixed(1) + ' ' + a[1].toFixed(1) + 'A' + r + ' ' + r + ' 0 0 1 ' + b[0].toFixed(1) + ' ' + b[1].toFixed(1); }
+    var needle = pt(T.value, R - 30), tip = pt(T.value, R + 14);
+    var s = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Strap tension gauge: in range">';
+    s += '<path d="' + arc(0, 1, R) + '" fill="none" stroke="var(--ink)" stroke-width="30" stroke-linecap="round"/>';
+    s += '<path d="' + arc(0.005, T.rangeLow - 0.005, R) + '" fill="none" stroke="var(--sand)" stroke-width="25" stroke-linecap="round"/>';
+    s += '<path d="' + arc(T.rangeHigh + 0.005, 0.995, R) + '" fill="none" stroke="var(--sun-soft)" stroke-width="25" stroke-linecap="round"/>';
+    s += '<path d="' + arc(T.rangeLow, T.rangeHigh, R) + '" fill="none" stroke="var(--go)" stroke-width="25"/>';
+    // zone words
+    var lo = [cx - R, cy + 24], hi = [cx + R, cy + 24];
+    s += '<text x="' + lo[0] + '" y="' + (lo[1] + 4) + '" text-anchor="middle" style="font:700 12px var(--font-ui);fill:var(--ink-2)">Loose</text>';
+    s += '<text x="' + hi[0] + '" y="' + (hi[1] + 4) + '" text-anchor="middle" style="font:700 12px var(--font-ui);fill:var(--ink-2)">Too tight</text>';
+    // marker on the arc
+    s += '<circle cx="' + pt(T.value, R)[0].toFixed(1) + '" cy="' + pt(T.value, R)[1].toFixed(1) + '" r="17" fill="var(--surface)" stroke="var(--ink)" stroke-width="3"/>';
+    s += '<path d="m' + (pt(T.value, R)[0] - 6).toFixed(1) + ' ' + (pt(T.value, R)[1] + 0.5).toFixed(1) + ' 4 4 8-8.5" fill="none" stroke="var(--go-ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+    return s + '</svg>';
+  }
+  function torsoSVG() {
+    // flat drawn torso: ribs above, belly button below, strap band between them, clip locked
+    return '<svg width="92" height="112" viewBox="0 0 92 112" role="img" aria-label="Where the strap goes: between belly button and ribs">' +
+      '<path d="M18 4c-4 22-8 40-6 62 2 22 8 34 10 42h48c2-8 8-20 10-42 2-22-2-40-6-62" fill="var(--sand)" stroke="var(--ink)" stroke-width="2.5" stroke-linejoin="round"/>' +
+      '<path d="M26 30c10 6 30 6 40 0M30 22c8 4 24 4 32 0" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round" opacity=".55"/>' +
+      '<rect x="9" y="50" width="74" height="18" rx="8" fill="var(--sun)" stroke="var(--ink)" stroke-width="2.5"/>' +
+      '<rect x="39" y="47" width="15" height="24" rx="4" fill="var(--go)" stroke="var(--ink)" stroke-width="2.5"/>' +
+      '<circle cx="46" cy="84" r="3" fill="var(--ink)"/>' +
+      '</svg>';
+  }
+  function balloonSVG() {
+    return '<svg width="56" height="64" viewBox="0 0 56 64" aria-hidden="true">' +
+      '<ellipse cx="28" cy="26" rx="21" ry="23" fill="var(--sun)" stroke="var(--ink)" stroke-width="2.5"/>' +
+      '<path d="M17 18c2-5 6-8 10-8" fill="none" stroke="var(--surface)" stroke-width="3" stroke-linecap="round"/>' +
+      '<path d="m25 49 3 4 3-4z" fill="var(--ink)"/><path d="M28 53c0 5-5 6-3 10" fill="none" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>' +
+      '</svg>';
+  }
+  var steps = D.calibration.steps;
+  chrome(document.getElementById('ph-locked'),
+    '<div class="bb-screen" aria-hidden="false">' +
+      '<div class="locked-bg" aria-hidden="true">' +
+        '<div class="home-top">' + BB.mark(30, 'solid') + '<span class="pill">' + ic('bluetooth', 16) + 'Strap · setting up</span><span class="pill">' + ic('cloud', 18) + 'BreathCloud</span></div>' +
+        '<div class="greet disp">Welcome, ' + D.user.firstName + '.</div>' +
+        '<div class="ph"></div>' +
+      '</div>' +
+      '<div class="locked-scrim"></div>' +
+      '<div class="lock-badge">' + ic('lock', 18) + 'Unlocks after strap setup</div>' +
+      '<section class="sheet" role="dialog" aria-label="Strap setup">' +
+        '<div class="grabber"></div>' +
+        '<div class="steps" aria-label="Setup, step 1 of 3">' + steps.map(function (s, i) {
+          return '<div><div class="seg' + (i === 0 ? ' on' : '') + '"></div><div class="lbl' + (i === 0 ? ' on' : '') + '">' + s + '</div></div>';
+        }).join('') + '</div>' +
+        '<h2 class="disp">Snug, not squeezed.</h2>' +
+        '<p class="lede">Your strap tension is right in the green zone.</p>' +
+        '<div class="gauge-wrap">' + gaugeSVG() +
+          '<div class="gauge-read"><div class="state">' + ic('check', 24) + 'In range</div><div class="sub">Right where it should be</div></div></div>' +
+        '<div class="how">' + torsoSVG() +
+          '<ol><li>Wrap the strap between your belly button and the bottom of your ribs.</li><li>Pull your stomach in and tighten until the gauge turns green.</li><li>Lock the clip.</li></ol></div>' +
+        '<div class="next">' + balloonSVG() + '<div><b>Next: Balloon breaths</b><span>Imagine your belly is a balloon. A few of your biggest breaths set your 100%.</span></div></div>' +
+        '<button class="btn btn-go" type="button">Continue to pre-calibration' + ic('chevronRight', 20) + '</button>' +
+      '</section>' +
+    '</div>');
+
+  // ================================================================ LIVE
+  var L = BB.liveState();
+  function ringSVG() {
+    var W = 354, Hh = 332, cx = W / 2, cy = Hh / 2, Rb = 150, n = L.breathsTotal, done = L.breathNumber - 1;
+    var rMin = 50, rMax = 122;
+    var rp = rMin + (rMax - rMin) * L.pacerSize, ru = rMin + (rMax - rMin) * Math.max(0, Math.min(1, L.userSize));
+    var s = '<svg class="ring" width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="Pacer bubble growing on the inhale, your ring just outside it. ' + done + ' of ' + n + ' breaths done.">';
+    // target: full inhale
+    s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rMax + '" fill="none" stroke="var(--ink)" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round" opacity=".45"/>';
+    // pacer bubble (inhale phase tint)
+    s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rp.toFixed(1) + '" fill="var(--inhale-soft)" stroke="var(--inhale)" stroke-width="2"/>';
+    s += '<path d="M' + (cx - rp * 0.55).toFixed(1) + ' ' + (cy - rp * 0.45).toFixed(1) + 'q' + (rp * 0.18).toFixed(1) + ' ' + (-rp * 0.25).toFixed(1) + ' ' + (rp * 0.42).toFixed(1) + ' ' + (-rp * 0.3).toFixed(1) + '" fill="none" stroke="var(--surface)" stroke-width="5" stroke-linecap="round"/>';
+    // the user's ring
+    s += '<circle cx="' + cx + '" cy="' + cy + '" r="' + ru.toFixed(1) + '" fill="none" stroke="var(--ink)" stroke-width="6"/>';
+    s += '<g transform="translate(' + cx + ' ' + (cy + ru - 3).toFixed(1) + ')"><rect x="-24" y="-13" width="48" height="26" rx="13" fill="var(--ink)"/><text x="0" y="5" text-anchor="middle" style="font:800 13px var(--font-ui);fill:var(--sun)">You</text></g>';
+    // breath beads, 12 o'clock first, clockwise
+    for (var i = 0; i < n; i++) {
+      var a = -Math.PI / 2 + (i / n) * Math.PI * 2, x = cx + Rb * Math.cos(a), y = cy + Rb * Math.sin(a);
+      if (i < done) s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="7.5" fill="var(--sun)" stroke="var(--ink)" stroke-width="2"/>';
+      else if (i === done) s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="12" fill="var(--inhale)" stroke="var(--ink)" stroke-width="2.5"/>';
+      else s += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="5.5" fill="var(--surface)" stroke="var(--ink-3)" stroke-width="2"/>';
+    }
+    return s + '</svg>';
+  }
+  var stripSVG = BB.waveSVG({
+    samples: P.userWave, pacer: P.pacerWave, hz: P.sampleHz, t0: L.t - 20, t1: L.t,
+    width: 334, height: 74, range: 3.6, pad: { l: 34, r: 6, t: 4, b: 4 }, stroke: 3, pacerStroke: 2,
+    title: 'Last 20 seconds: your line against the pacer line, inhale above the midline'
+  });
+  chrome(document.getElementById('ph-live'),
+    '<div class="bb-screen live">' +
+      '<div class="live-top">' +
+        '<span class="pill">' + ic('breathe', 20) + P.pacerLabel + '</span>' +
+        '<button class="pill pill-on" type="button" aria-pressed="true">' + ic('note', 20) + 'Notes on</button>' +
+      '</div>' +
+      '<p class="live-msg">' + (L.progress < 0.45 ? 'Nearly halfway' : L.progress < 0.55 ? 'Halfway there' : L.progress < 0.85 ? 'Over the hump' : 'Nearly done') + '. Lovely and steady.</p>' +
+      ringSVG() +
+      '<div class="cue disp"><span class="arrow"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg></span>Breathe in</div>' +
+      '<p class="cue-sub">Grow with the bubble. A high note marks the top.</p>' +
+      '<div class="key"><span><i style="background:var(--inhale-soft);border:2px solid var(--inhale)"></i>Pacer bubble</span><span><i style="border:4px solid var(--ink)"></i>Your breath</span><span><i style="background:var(--sun);border:2px solid var(--ink)"></i>Breaths done</span></div>' +
+      '<div class="strip card"><div class="strip-head">Line view<span>last few breaths</span></div>' + stripSVG + '</div>' +
+      '<div class="controls">' +
+        '<div class="round"><button class="btn" type="button" aria-label="Stop session">' + ic('stop', 26) + '</button>Stop</div>' +
+        '<div class="round"><button class="btn btn-primary" type="button" aria-label="Pause session">' + ic('pause', 30) + '</button>Pause</div>' +
+        '<div class="round"><button class="btn" type="button" aria-label="Sound settings">' + ic('soundOn', 26) + '</button>Sound</div>' +
+      '</div>' +
+    '</div>');
+
+  // ================================================================ REVIEW
+  function reviewWave() {
+    var t0 = 60, t1 = 120, W = 334, Hh = 112, pad = { l: 32, r: 4, t: 18, b: 4 };
+    var box = { x: pad.l, y: pad.t, w: W - pad.l - pad.r, h: Hh - pad.t - pad.b }, range = 3.8, hz = P.sampleHz;
+    var mid = box.y + box.h / 2;
+    var xy = BB.toXY(BB.slice(P.userWave, hz, t0, t1, 600), box, t0, t1, range);
+    var pxy = BB.toXY(BB.slice(P.pacerWave, hz, t0, t1, 600), box, t0, t1, range);
+    var d = BB.smoothPath(xy), area = BB.areaPath(xy, mid, true);
+    // best two consecutive breaths in view (lowest mean |user - pacer|)
+    var dev = [];
+    for (var b = t0 / 10; b < t1 / 10; b++) { var sum = 0; for (var i = b * 100; i < b * 100 + 100; i++) sum += Math.abs(P.userWave[i] - P.pacerWave[i]); dev.push({ b: b, d: sum / 100 }); }
+    var bestPair = 0, bestVal = 1e9;
+    for (var k = 0; k < dev.length - 1; k++) { var v = dev[k].d + dev[k + 1].d; if (v < bestVal) { bestVal = v; bestPair = k; } }
+    var bx0 = box.x + ((dev[bestPair].b * 10 - t0) / (t1 - t0)) * box.w, bx1 = box.x + (((dev[bestPair].b + 2) * 10 - t0) / (t1 - t0)) * box.w;
+    var s = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 ' + W + ' ' + Hh + '" role="img" aria-label="One minute of the session: your breath against the pacer. Inhale above the midline in red, exhale below in blue. Best stretch highlighted.">';
+    s += '<defs><clipPath id="rvIn"><rect x="0" y="0" width="' + W + '" height="' + mid + '"/></clipPath><clipPath id="rvOut"><rect x="0" y="' + mid + '" width="' + W + '" height="' + (Hh - mid) + '"/></clipPath></defs>';
+    s += '<rect class="pw-best" x="' + bx0.toFixed(1) + '" y="' + (box.y - 2) + '" width="' + (bx1 - bx0).toFixed(1) + '" height="' + (box.h + 4) + '" rx="10"/>';
+    s += '<text class="pw-best-l" x="' + ((bx0 + bx1) / 2).toFixed(1) + '" y="12" text-anchor="middle">Best stretch</text>';
+    s += '<path class="pw-fill-in" d="' + area + '" clip-path="url(#rvIn)"/><path class="pw-fill-out" d="' + area + '" clip-path="url(#rvOut)"/>';
+    s += '<line class="pw-mid" x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + mid + '" y2="' + mid + '" stroke-width="1.5" stroke-dasharray="5 5"/>';
+    s += '<path class="pw-pacer" d="' + BB.smoothPath(pxy) + '" fill="none" stroke-width="2" stroke-dasharray="2 5" stroke-linecap="round"/>';
+    s += '<path class="pw-line-in" d="' + d + '" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#rvIn)"/>';
+    s += '<path class="pw-line-out" d="' + d + '" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" clip-path="url(#rvOut)"/>';
+    s += '<text class="pw-label" x="' + (pad.l - 6) + '" y="' + (box.y + 12) + '" text-anchor="end">IN</text>';
+    s += '<text class="pw-label" x="' + (pad.l - 6) + '" y="' + (box.y + box.h - 2) + '" text-anchor="end">OUT</text>';
+    return s + '</svg>';
+  }
+  function cell(score, label) {
+    var b = scoreBits(score);
+    return '<div class="g-cell" aria-label="' + label + ' ' + b.n + ', ' + b.w + '"><span class="n">' + b.n + '</span><span><span class="w">' + b.w + '</span>' + beads10(score) + '</span></div>';
+  }
+  var S = P.scores, rb = scoreBits(S.total);
+  chrome(document.getElementById('ph-review'),
+    '<div class="bb-screen review">' +
+      '<div class="rv-top"><button class="link" type="button">' + ic('chevronLeft', 22) + 'History</button><span class="title">' + BB.fmtDate(P.date, true) + ' · ' + P.time + ' · ' + P.durationLabel + '</span><span style="width:44px"></span></div>' +
+      '<section class="rv-hero card" aria-label="Total Breath Score">' +
+        '<div class="hero-num disp">' + rb.n + '</div>' +
+        '<div class="hero-side"><div class="hero-word">' + rb.w + '</div>' +
+          (isBest ? '<span class="sticker" style="background:var(--surface)">' + ic('trophy', 15) + 'Personal best</span>' : '') +
+          '<div class="meta">Total Breath Score · ' + P.pacerLabel.replace('-', '‑') + '</div></div>' +
+      '</section>' +
+      '<section class="grid4 card" aria-label="Score breakdown">' +
+        '<div class="g-head"><span></span><span><i class="dot dot-in"></i>Inhale ↑</span><span><i class="dot dot-out"></i>Exhale ↓</span></div>' +
+        '<div class="g-row"><span class="name">Timing<small>vs pacer</small></span>' + cell(S.timing.inhale, 'Timing inhale') + cell(S.timing.exhale, 'Timing exhale') + '</div>' +
+        '<div class="g-row"><span class="name">Depth<small>vs 6% target</small></span>' + cell(S.depth.inhale, 'Depth inhale') + cell(S.depth.exhale, 'Depth exhale') + '</div>' +
+        '<div class="g-row secondary"><span class="name" style="font-size:14px">Smoothness<small>bonus</small></span>' + cell(S.smoothness.inhale, 'Smoothness inhale') + cell(S.smoothness.exhale, 'Smoothness exhale') + '</div>' +
+        '<p class="legend"><b>How scores work:</b> within 10% of the pacer scores 10; each extra 10% off is one point less, down to 1. Smoothness is a bonus, not in the total.</p>' +
+      '</section>' +
+      '<section class="chart-card card" aria-label="Breathing graph">' +
+        '<div class="chips" role="tablist" aria-label="Time window">' + D.timeAxis.map(function (c) { return '<button class="chip' + (c === '60 s' ? ' is-on' : '') + '" role="tab" aria-selected="' + (c === '60 s') + '" type="button">' + c + '</button>'; }).join('') + '</div>' +
+        reviewWave() +
+        '<div class="scrub-row"><div class="scrub" aria-hidden="true"><i style="left:' + (60 / P.duration * 100) + '%;width:' + (60 / P.duration * 100) + '%"></i></div>' +
+        '<span class="scrub-l">Swipe · 1:00–2:00 of ' + P.durationLabel + '</span></div>' +
+      '</section>' +
+      '<div class="note">' + ic('pencil', 22) + '<div><b>Your note</b><p>' + P.note + '</p></div></div>' +
+    '</div>' +
+    '<div class="actions">' +
+      '<button class="btn" type="button">' + ic('pdf', 20) + 'Export PDF</button>' +
+      '<button class="btn btn-primary" type="button">' + ic('cloudCheck', 22) + 'BreathCloud</button>' +
+    '</div>');
+
+  BB.initPage();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coach Console · BreathBand® directions</title>
+<link rel="stylesheet" href="../../shared/fonts/fonts.css">
+<link rel="stylesheet" href="../../shared/frame.css">
+<style>
+/* ======================================================================
+   04 Coach Console: tokens (map 1:1 onto a BreathbandTheme extension)
+   ====================================================================== */
+:root {
+  /* chrome */
+  --c-chrome: #1D2228;
+  --c-chrome-2: #272D34;
+  --c-chrome-rule: #353C45;
+  --c-chrome-ink: #EEF0F2;
+  --c-chrome-ink-2: #A6AFB9;
+  /* surfaces */
+  --c-ground: #EEF0F2;
+  --c-pane: #FFFFFF;
+  --c-rule: #D9DDE2;
+  --c-rule-soft: #E7EAED;
+  --c-well: #F5F6F8;
+  /* ink */
+  --c-ink: #16191D;
+  --c-ink-2: #5A626C;
+  /* action + status */
+  --c-action: #0F6E78;
+  --c-action-ink: #FFFFFF;
+  --c-action-tint: #E1EFF0;
+  --c-ok: #2E8B57;
+  --c-ok-strong: #1F6B43;
+  --c-ok-tint: #E2F1E8;
+  --c-mid: #8A939D;
+  --c-low: #B7701A;
+  /* breath */
+  --c-in: #D0283E;
+  --c-in-tint: #FBE7EA;
+  --c-out: #1E63D0;
+  --c-out-tint: #E4ECFA;
+  --c-pacer: #8C96A1;
+  --c-band: #F1F3F5;
+
+  /* type */
+  --f-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --f-cond: 'IBM Plex Sans Condensed', 'IBM Plex Sans', system-ui, sans-serif;
+  --t-12: 12px;
+  --t-13: 13px;
+  --t-15: 15px;
+  --t-17: 17px;
+  --t-20: 20px;
+  --t-24: 24px;
+  --t-28: 28px;
+  --t-40: 40px;
+
+  /* shape + space */
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-sheet: 12px;
+  --s-1: 4px;
+  --s-2: 6px;
+  --s-3: 8px;
+  --s-4: 12px;
+  --s-5: 16px;
+  --s-6: 20px;
+  --s-7: 24px;
+
+  /* elevation: only what floats */
+  --shadow-float: 0 10px 30px rgba(22, 25, 29, .22), 0 1px 3px rgba(22, 25, 29, .14);
+
+  /* motion: near zero */
+  --dur-fast: 120ms;
+  --ease-out: cubic-bezier(.2, 0, 0, 1);
+
+  /* icons */
+  --icon-stroke: 1.6;
+  --icon-cap: square;
+  --icon-join: miter;
+
+  /* frame */
+  --frame-ground: var(--c-ground);
+  --status-ink: #FFFFFF;
+  --page-ground: #DCE0E4;
+  --page-ink-2: #4E565F;
+}
+
+::selection { background: var(--c-action-tint); color: var(--c-ink); }
+
+body { font-family: var(--f-sans); color: var(--c-ink); }
+.bb-row { flex-wrap: wrap; row-gap: 48px; }
+.bb-phone, .bb-page { font-variant-numeric: tabular-nums; }
+
+/* ---------------- page header ---------------- */
+.pg-head { max-width: 1180px; margin: 0 0 36px; display: grid; grid-template-columns: 1fr auto; gap: 24px 48px; align-items: end; }
+.pg-head h1 { margin: 0; font: 600 var(--t-28)/1.15 var(--f-sans); letter-spacing: -0.01em; display: flex; gap: 12px; align-items: center; }
+.pg-head p { margin: 6px 0 0; font: 400 var(--t-17)/1.45 var(--f-sans); color: var(--page-ink-2); max-width: 60ch; }
+.pg-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.pg-tag { font: 500 var(--t-13)/1 var(--f-cond); padding: 7px 10px; border-radius: var(--r-1); background: var(--c-pane); border: 1px solid var(--c-rule); color: var(--c-ink); }
+.pg-swatches { display: grid; grid-template-columns: repeat(6, 92px); gap: 8px; }
+.pg-swatch { font: 400 var(--t-12)/1.3 var(--f-cond); color: var(--page-ink-2); }
+.pg-swatch i { display: block; height: 40px; border-radius: var(--r-1); border: 1px solid rgba(22, 25, 29, .12); margin-bottom: 6px; }
+.pg-swatch b { display: block; font-weight: 600; color: var(--c-ink); }
+
+/* ---------------- shared atoms ---------------- */
+.scr { display: flex; flex-direction: column; background: var(--c-ground); }
+.cond { font-family: var(--f-cond); }
+.muted { color: var(--c-ink-2); }
+
+.appbar { background: var(--c-chrome); color: var(--c-chrome-ink); padding: 54px var(--s-5) 0; flex: none; }
+.appbar-row { min-height: 56px; display: flex; align-items: center; gap: var(--s-4); }
+.appbar-title { flex: 1; min-width: 0; }
+.appbar-title b { display: block; font: 600 var(--t-20)/1.2 var(--f-sans); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar-title span { display: block; font: 400 var(--t-13)/1.35 var(--f-cond); color: var(--c-chrome-ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.appbar .bb-mark { color: var(--c-chrome-ink); flex: none; }
+.iconbtn { width: 44px; height: 44px; display: grid; place-items: center; border: 0; background: none; border-radius: var(--r-2); color: inherit; padding: 0; flex: none; }
+.iconbtn:focus-visible, .btn:focus-visible, .seg button:focus-visible { outline: 2px solid var(--c-action); outline-offset: 2px; }
+
+.strip { display: grid; grid-template-columns: 1fr 1fr; background: var(--c-chrome-2); color: var(--c-chrome-ink); border-top: 1px solid var(--c-chrome-rule); margin: 0 calc(-1 * var(--s-5)); }
+.strip > div { display: flex; gap: 8px; align-items: center; padding: 9px var(--s-5); font: 400 var(--t-13)/1.25 var(--f-cond); min-width: 0; }
+.strip > div + div { border-left: 1px solid var(--c-chrome-rule); }
+.strip .ok { width: 8px; height: 8px; border-radius: 50%; background: #4FC387; flex: none; }
+.strip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.strip svg { flex: none; color: var(--c-chrome-ink-2); }
+
+.body { flex: 1; min-height: 0; padding: var(--s-3) var(--s-4) 0; display: flex; flex-direction: column; gap: var(--s-3); }
+.pane { background: var(--c-pane); border: 1px solid var(--c-rule); border-radius: var(--r-2); }
+.pane-pad { padding: var(--s-4); }
+.pane-h { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); }
+.pane-h h2 { margin: 0; font: 600 var(--t-15)/1.3 var(--f-sans); }
+.pane-h .meta { font: 400 var(--t-13)/1.3 var(--f-cond); color: var(--c-ink-2); white-space: nowrap; }
+.label { font: 400 var(--t-12)/1.3 var(--f-cond); color: var(--c-ink-2); }
+
+.link { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; border: 0; background: none; padding: 0; font: 500 var(--t-15)/1.2 var(--f-sans); color: var(--c-action); text-decoration: none; }
+.link svg { color: var(--c-action); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 var(--s-5); border-radius: var(--r-2); border: 1px solid var(--c-rule); background: var(--c-pane); color: var(--c-ink); font: 600 var(--t-15)/1.15 var(--f-sans); transition: background var(--dur-fast) var(--ease-out); }
+.btn:active { background: var(--c-well); }
+.btn-primary { background: var(--c-action); border-color: var(--c-action); color: var(--c-action-ink); }
+.btn-primary:active { background: #0B5860; }
+.btn-ok { background: var(--c-ok-strong); border-color: var(--c-ok-strong); color: #fff; }
+.btn-ink { background: var(--c-ink); border-color: var(--c-ink); color: #fff; }
+.btn small { display: block; font: 400 var(--t-12)/1.2 var(--f-cond); opacity: .85; margin-top: 2px; }
+.btn .stack { text-align: left; }
+
+/* scores */
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; flex: none; }
+.dot-ok { background: var(--c-ok); }
+.dot-mid { background: var(--c-mid); }
+.dot-low { background: var(--c-low); }
+.score { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.score-n { font-weight: 600; color: var(--c-ink); }
+.score-w { font: 400 var(--t-12)/1 var(--f-cond); color: var(--c-ink-2); }
+.dir { display: inline-flex; align-items: center; gap: 4px; font: 500 var(--t-12)/1 var(--f-cond); color: var(--c-ink-2); }
+.dir svg { flex: none; }
+
+/* tables */
+table { border-collapse: collapse; width: 100%; }
+th { font: 400 var(--t-12)/1.2 var(--f-cond); color: var(--c-ink-2); text-align: left; padding: 0 0 6px; }
+td { font: 400 var(--t-15)/1.2 var(--f-sans); padding: 0; height: 40px; border-top: 1px solid var(--c-rule-soft); white-space: nowrap; }
+th.num, td.num { text-align: right; }
+td.sub { font: 400 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+
+/* tab bar */
+.tabbar { flex: none; background: var(--c-chrome); color: var(--c-chrome-ink-2); display: grid; grid-template-columns: repeat(4, 1fr); padding: 6px 8px 34px; }
+.tabbar a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 44px; font: 500 var(--t-12)/1 var(--f-cond); color: inherit; text-decoration: none; }
+.tabbar a[aria-current] { color: var(--c-chrome-ink); }
+
+/* segmented */
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--c-rule); border-radius: var(--r-2); overflow: hidden; background: var(--c-pane); }
+.seg button { min-height: 36px; border: 0; background: none; font: 500 var(--t-13)/1 var(--f-cond); color: var(--c-ink-2); padding: 0 6px; position: relative; }
+.seg button::after { content: ''; position: absolute; inset: -4px 0; } /* 44 px hit area */
+.seg button + button { border-left: 1px solid var(--c-rule); }
+.seg button[aria-pressed="true"] { background: var(--c-ink); color: #fff; }
+
+/* charts */
+.chart text { font-family: var(--f-cond); font-size: 12px; fill: var(--c-ink-2); }
+.chart .grid { stroke: var(--c-rule-soft); stroke-width: 1; }
+.chart .gridd { stroke: var(--c-rule); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart .ink { stroke: var(--c-ink); }
+.bb-w-grid { stroke: var(--c-rule-soft); stroke-width: 1; }
+.bb-w-mid { stroke: var(--c-ink-2); stroke-width: 1; }
+.bb-w-pacer { stroke: var(--c-pacer); opacity: .5; stroke-linecap: round; }
+.bb-w-in { stroke: var(--c-in); stroke-linejoin: round; }
+.bb-w-out { stroke: var(--c-out); stroke-linejoin: round; }
+.bb-w-label { font: 600 12px var(--f-cond); fill: var(--c-ink-2); }
+.bb-w-tick { font: 400 12px var(--f-cond); fill: var(--c-ink-2); }
+.bb-wave { display: block; overflow: visible; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 400 var(--t-12)/1.3 var(--f-cond); color: var(--c-ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.sw-line { width: 18px; height: 0; border-top: 2px solid; }
+.sw-pacer { width: 18px; height: 4px; border-radius: 2px; background: var(--c-pacer); opacity: .5; }
+
+/* scale legend */
+.scale { display: grid; grid-template-columns: repeat(10, 1fr); gap: 2px; }
+.scale i { height: 18px; border-radius: 2px; background: var(--c-well); border: 1px solid var(--c-rule); font: 600 12px/16px var(--f-cond); font-style: normal; text-align: center; color: var(--c-ink-2); }
+.scale i.hit { background: var(--c-ink); border-color: var(--c-ink); color: #fff; }
+.scale-ends { display: flex; justify-content: space-between; margin-top: 4px; }
+
+/* ======================================================================
+   Screen 1: home
+   ====================================================================== */
+.latest-top { display: flex; justify-content: space-between; gap: var(--s-4); align-items: flex-start; }
+.total { text-align: right; }
+.total .n { font: 600 var(--t-28)/1 var(--f-sans); letter-spacing: -0.01em; }
+.total .w { font: 500 var(--t-13)/1 var(--f-cond); color: var(--c-ink); margin-left: 4px; }
+.total .d { display: block; margin-top: 6px; font: 400 var(--t-12)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.mini td { height: 32px; }
+.mini td:first-child { font: 400 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.trend { display: grid; grid-template-columns: 1fr 128px; gap: var(--s-4); }
+.trend .t-h { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.trend .t-h b { font: 600 var(--t-13)/1.2 var(--f-sans); }
+.trend .t-h span { font: 400 var(--t-12)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.quick { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.quick .btn { justify-content: flex-start; min-height: 56px; padding: 0 var(--s-4); }
+.sessions td:nth-child(2) { font: 400 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+
+/* ======================================================================
+   Screen 2: locked
+   ====================================================================== */
+.locked-bg { filter: grayscale(1); }
+.locked-bg .body > * { opacity: .45; }
+.locked-bg .lockrow { display: flex; align-items: center; gap: 8px; font: 500 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.ph { display: block; height: 10px; border-radius: 2px; background: var(--c-rule); }
+.scrim { position: absolute; inset: 0; background: rgba(22, 25, 29, .52); z-index: 5; }
+.sheet { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; background: var(--c-pane); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: 8px var(--s-5) 34px; box-shadow: var(--shadow-float); }
+.grabber { width: 36px; height: 5px; border-radius: 3px; background: var(--c-rule); margin: 0 auto 10px; }
+.sheet h2 { margin: 0; font: 600 var(--t-20)/1.25 var(--f-sans); letter-spacing: -0.01em; }
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: var(--s-3) 0 var(--s-4); padding: 0; list-style: none; }
+.steps li { font: 500 var(--t-12)/1.2 var(--f-cond); color: var(--c-ink-2); padding-top: 8px; border-top: 3px solid var(--c-rule); }
+.steps li[aria-current] { color: var(--c-ink); border-top-color: var(--c-ok); }
+.gauge-box { border: 1px solid var(--c-rule); border-radius: var(--r-2); padding: var(--s-4); }
+.gauge-status { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); margin-bottom: 10px; }
+.gauge-status b { display: inline-flex; align-items: center; gap: 8px; font: 600 var(--t-17)/1.2 var(--f-sans); color: var(--c-ok-strong); }
+.gauge-status b svg { color: var(--c-ok-strong); }
+.gauge-status span { font: 400 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.gauge .zone-lbl { font: 500 12px var(--f-cond); fill: var(--c-ink-2); }
+.gauge .zone-lbl.on { fill: var(--c-ok-strong); font-weight: 600; }
+.steps-list { margin: var(--s-4) 0 0; padding: 0; list-style: none; }
+.steps-list li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; padding: 7px 0; border-top: 1px solid var(--c-rule-soft); font: 400 var(--t-15)/1.35 var(--f-sans); }
+.steps-list li:first-child { border-top: 0; }
+.steps-list .tick { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font: 600 12px/1 var(--f-cond); background: var(--c-ok-tint); color: var(--c-ok-strong); margin-top: 0; }
+.steps-list .tick.todo { background: var(--c-well); color: var(--c-ink-2); border: 1px solid var(--c-rule); }
+.next { display: grid; grid-template-columns: 96px 1fr; gap: var(--s-4); align-items: center; background: var(--c-well); border-radius: var(--r-2); padding: 8px var(--s-4); margin: var(--s-3) 0 var(--s-4); }
+.next b { display: block; font: 600 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); margin-bottom: 3px; }
+.next p { margin: 0; font: 400 var(--t-15)/1.35 var(--f-sans); }
+
+/* ======================================================================
+   Screen 3: live
+   ====================================================================== */
+.timer { display: grid; grid-template-columns: 1fr 1fr; }
+.timer > div + div { border-left: 1px solid var(--c-rule-soft); padding-left: var(--s-4); }
+.timer .v { display: block; font: 500 var(--t-40)/1 var(--f-sans); letter-spacing: -0.02em; margin-top: 4px; }
+.progress { position: relative; height: 4px; background: var(--c-rule-soft); border-radius: 2px; margin-top: var(--s-4); }
+.progress i { position: absolute; inset: 0 auto 0 0; background: var(--c-ink); border-radius: 2px; }
+.progress u { position: absolute; top: -3px; width: 1px; height: 10px; background: var(--c-rule); }
+.cue { display: grid; grid-template-columns: 1fr 88px; gap: var(--s-4); align-items: center; }
+.cue-word { display: flex; align-items: center; gap: 10px; font: 600 var(--t-28)/1 var(--f-sans); letter-spacing: -0.01em; }
+.cue-word svg { color: var(--c-in); flex: none; }
+.phase { display: grid; grid-template-columns: 5fr 5fr; gap: 2px; margin-top: 10px; }
+.phase i { height: 6px; background: var(--c-rule-soft); position: relative; overflow: hidden; }
+.phase i:first-child { border-radius: 3px 0 0 3px; }
+.phase i:last-child { border-radius: 0 3px 3px 0; }
+.phase i b { position: absolute; inset: 0 auto 0 0; background: var(--c-in); }
+.inset { border: 1px solid var(--c-rule); border-radius: var(--r-2); background: var(--c-well); }
+.toggle { width: 51px; height: 31px; border-radius: 16px; background: var(--c-action); position: relative; flex: none; }
+.toggle::after { content: ''; position: absolute; top: 2px; right: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; }
+.sound { display: flex; align-items: center; gap: var(--s-4); }
+.sound .txt { flex: 1; min-width: 0; }
+.sound b { display: block; font: 600 var(--t-15)/1.25 var(--f-sans); }
+.sound span { display: block; font: 400 var(--t-13)/1.3 var(--f-cond); color: var(--c-ink-2); }
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.controls .btn { min-height: 52px; }
+.live-chart .band { fill: var(--c-band); }
+.live-chart .band-edge { stroke: var(--c-rule); stroke-dasharray: 3 3; }
+.live-chart .p-past { stroke: var(--c-pacer); opacity: .45; fill: none; stroke-linecap: round; }
+.live-chart .p-next { stroke: var(--c-pacer); opacity: .8; fill: none; stroke-dasharray: 1 5; stroke-linecap: round; }
+.live-chart .now { stroke: var(--c-ink); stroke-width: 1.5; }
+.live-chart .now-lbl { font-weight: 600; fill: var(--c-ink); }
+
+/* ======================================================================
+   Screen 4: review (phone)
+   ====================================================================== */
+.rv-score { display: grid; grid-template-columns: 124px 1fr; gap: var(--s-4); }
+.hero .lbl { font: 400 var(--t-13)/1.25 var(--f-cond); color: var(--c-ink-2); }
+.hero .n { display: block; font: 600 var(--t-40)/1 var(--f-sans); letter-spacing: -0.02em; margin: 6px 0 4px; }
+.hero .w { display: flex; align-items: center; font: 600 var(--t-15)/1.2 var(--f-sans); }
+.hero .d { display: block; margin-top: 4px; font: 400 var(--t-12)/1.3 var(--f-cond); color: var(--c-ink-2); }
+.sc td { height: 32px; }
+.sc td:first-child { font: 400 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.sc tr.secondary td { color: var(--c-ink-2); }
+.sc tr.secondary .score-n { font-weight: 400; color: var(--c-ink-2); }
+.scale-row { border-top: 1px solid var(--c-rule-soft); margin-top: var(--s-4); padding-top: 8px; }
+.scale-row .pane-h { margin-bottom: 6px; }
+.scale-row .link { min-height: 28px; font-size: var(--t-13); position: relative; }
+.scale-row .link::after { content: ''; position: absolute; inset: -8px -4px; }
+.lane-lbl { font: 600 12px var(--f-cond); fill: var(--c-ink-2); }
+.ovl-dim { fill: var(--c-pane); opacity: .72; }
+.ovl-win { fill: none; stroke: var(--c-ink); stroke-width: 1.5; }
+.note-txt { margin: 6px 0 0; font: 400 var(--t-15)/1.45 var(--f-sans); }
+.note-txt.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.scale-row .link { white-space: nowrap; }
+.actionbar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 4; background: var(--c-pane); border-top: 1px solid var(--c-rule); padding: 6px var(--s-4) 34px; display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.actionbar .btn { min-height: 46px; }
+.btn-cloud { color: var(--c-ok-strong); }
+.btn-cloud svg { color: var(--c-ok-strong); }
+
+/* ======================================================================
+   iPad review: the console
+   ====================================================================== */
+.ipad { display: grid; grid-template-rows: auto 1fr; background: var(--c-ground); }
+.ip-top { background: var(--c-chrome); color: var(--c-chrome-ink); padding: 32px var(--s-6) 0; }
+.ip-top-row { height: 56px; display: flex; align-items: center; gap: var(--s-5); }
+.ip-brand { display: flex; align-items: center; gap: 10px; font: 600 var(--t-17)/1 var(--f-sans); }
+.ip-brand span { color: var(--c-chrome-ink-2); font-weight: 400; }
+.ip-client { display: flex; align-items: center; gap: 10px; padding: 0 12px; height: 40px; border-radius: var(--r-2); background: var(--c-chrome-2); border: 1px solid var(--c-chrome-rule); font: 500 var(--t-15)/1 var(--f-sans); }
+.ip-client .av { width: 26px; height: 26px; border-radius: 50%; background: #3A434D; display: grid; place-items: center; font: 600 12px/1 var(--f-cond); }
+.ip-client small { font: 400 var(--t-13)/1 var(--f-cond); color: var(--c-chrome-ink-2); }
+.ip-sync { margin-left: auto; display: flex; align-items: center; gap: 8px; font: 400 var(--t-13)/1 var(--f-cond); color: var(--c-chrome-ink-2); }
+.ip-sync .ok { width: 8px; height: 8px; border-radius: 50%; background: #4FC387; }
+.ip-top .btn { min-height: 40px; background: var(--c-chrome-2); border-color: var(--c-chrome-rule); color: var(--c-chrome-ink); }
+.ip-top .btn svg { color: var(--c-chrome-ink-2); }
+.ip-main { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: 0; }
+.ip-rail { background: var(--c-pane); border-right: 1px solid var(--c-rule); display: flex; flex-direction: column; min-height: 0; }
+.ip-rail-h { padding: var(--s-5) var(--s-5) var(--s-3); }
+.ip-rail-h h2 { margin: 0 0 10px; font: 600 var(--t-15)/1.2 var(--f-sans); display: flex; justify-content: space-between; }
+.ip-rail-h h2 span { font: 400 var(--t-13)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.ip-list { list-style: none; margin: 0; padding: 0 var(--s-3); overflow: hidden; }
+.ip-list li { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; padding: 9px 10px; border-radius: var(--r-2); }
+.ip-list li + li { margin-top: 1px; }
+.ip-list li[aria-current] { background: var(--c-ground); box-shadow: inset 0 0 0 1px var(--c-rule); }
+.ip-list .d { font: 500 var(--t-15)/1.25 var(--f-sans); }
+.ip-list .t { font: 400 var(--t-13)/1.25 var(--f-cond); color: var(--c-ink-2); grid-column: 1; }
+.ip-list .r { grid-row: 1 / span 2; grid-column: 2; align-self: center; text-align: right; font: 600 var(--t-15)/1.25 var(--f-sans); }
+.ip-list .r small { display: block; font: 400 var(--t-12)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.ip-body { padding: var(--s-4) var(--s-6) 0; display: grid; grid-template-rows: auto auto auto 1fr; gap: var(--s-3); min-height: 0; min-width: 0; }
+.ip-title { display: flex; align-items: baseline; gap: var(--s-4); }
+.ip-title h1 { margin: 0; font: 600 var(--t-24)/1.15 var(--f-sans); letter-spacing: -0.01em; }
+.ip-title span { font: 400 var(--t-15)/1.2 var(--f-cond); color: var(--c-ink-2); }
+.ip-scores { display: grid; grid-template-columns: 172px 1fr 352px; gap: var(--s-3); }
+.ip-scores .pane { padding: var(--s-4) var(--s-4); }
+.ip-scores .hero .n { font-size: 36px; margin: 4px 0 2px; }
+.ip-scores .sc td { height: 30px; }
+.ip-wave .pane-h { margin-bottom: 8px; align-items: center; }
+.ip-wave .seg { width: 340px; flex: none; }
+.ip-wave .pane-h h2 { white-space: nowrap; }
+.ip-low { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: var(--s-3); min-height: 0; }
+.ip-low .pane { padding: var(--s-3) var(--s-4); }
+.ip-low .note-txt { font-size: 14px; line-height: 1.4; }
+.bt td { height: 22px; font-size: var(--t-13); }
+.bt th { padding-bottom: 4px; }
+.comment { margin-top: 6px; border: 1px solid var(--c-rule); border-radius: var(--r-2); padding: 8px 10px; font: 400 14px/1.4 var(--f-sans); min-height: 78px; }
+.comment::after { content: ''; display: inline-block; width: 1.5px; height: 17px; background: var(--c-action); vertical-align: -3px; margin-left: 1px; }
+.rules { margin: 8px 0 0; padding: 0; list-style: none; font: 400 var(--t-13)/1.35 var(--f-sans); color: var(--c-ink-2); }
+.rules li { padding: 2px 0; }
+.rules b { color: var(--c-ink); font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main class="bb-page">
+  <header class="pg-head" id="pg-head"></header>
+  <div class="bb-row" id="row"></div>
+</main>
+
+<script src="../../shared/mock-data.js"></script>
+<script src="../../shared/directions.js"></script>
+<script src="../../shared/bb.js"></script>
+<script>
+(function () {
+  'use strict';
+  var D = BB_DATA, B = BB, P = D.latestPaced, O = D.latestOpen, HZ = P.sampleHz;
+  var DIR = BB_DIRECTIONS.filter(function (d) { return d.id === '04-coach-console'; })[0];
+  var H = D.helpers, I = B.icon;
+  var newest = D.sessions.slice().reverse();
+  var uidN = 0;
+  function uid(p) { uidN += 1; return 'cc-' + p + uidN; }
+  function r1(n) { return Math.round(n * 10) / 10; }
+
+  // ---------------------------------------------------------------- score atoms
+  function band(s) { var b = H.scoreWord(s).band; return b === 'high' || b === 'good' ? 'ok' : b === 'mid' ? 'mid' : 'low'; }
+  function score(s) {
+    return '<span class="score"><span class="score-n">' + H.formatScore(s) + '</span><span class="score-w"><i class="dot dot-' +
+      band(s) + '"></i>' + H.scoreWord(s).word + '</span></span>';
+  }
+  // direction glyphs: the non-colour cue for inhale (up, above) / exhale (down, below)
+  function arrow(dir, size) {
+    size = size || 10;
+    var d = dir === 'in' ? 'M5 1 9.5 8.5h-9Z' : 'M5 9 .5 1.5h9Z';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 10 10" aria-hidden="true"><path d="' + d +
+      '" fill="var(--c-' + dir + ')"/></svg>';
+  }
+  function dirHead(dir) { return '<span class="dir">' + arrow(dir) + (dir === 'in' ? 'Inhale' : 'Exhale') + '</span>'; }
+  function sessionName(s) { return s.type === 'Paced' ? 'Paced ' + s.pacer : 'Open'; }
+  function sessionResult(s, compact) {
+    if (s.scores) return score(s.scores.total);
+    return '<span class="score"><span class="score-n">' + s.open.inRange + '%</span><span class="score-w">in range' +
+      (compact ? '' : ' · ' + s.open.rate + ' br/min') + '</span></span>';
+  }
+
+  // ---------------------------------------------------------------- frame
+  function figure(screen, caption, inner, opts) {
+    opts = opts || {};
+    return '<figure class="bb-shot" data-screen="' + screen + '">' +
+      '<div class="bb-phone' + (opts.ipad ? ' bb-ipad' : '') + '"' + (opts.style ? ' style="' + opts.style + '"' : '') + '>' +
+      B.statusBar({ ipad: !!opts.ipad }) + '<div class="bb-screen ' + (opts.cls || 'scr') + '">' + inner + '</div>' + B.homeIndicator() +
+      '</div><figcaption>' + caption + '</figcaption></figure>';
+  }
+  function tabbar(active) {
+    var tabs = [['today', 'Today'], ['breathe', 'Breathe'], ['history', 'History'], ['profile', 'Profile']];
+    return '<nav class="tabbar" aria-label="Main">' + tabs.map(function (t) {
+      return '<a href="#"' + (t[1] === active ? ' aria-current="page"' : '') + '>' + I(t[0], 22) + t[1] + '</a>';
+    }).join('') + '</nav>';
+  }
+  function deviceStrip() {
+    return '<div class="strip">' +
+      '<div><i class="ok"></i>' + I('bluetooth', 16) + '<span>Strap connected · ' + D.device.battery + '%</span></div>' +
+      '<div>' + I('cloudCheck', 16) + '<span>BreathCloud \u00b7 ' + D.cloud.lastSync + '</span></div></div>';
+  }
+
+  // ---------------------------------------------------------------- charts
+  function pacedTrend(W, Hh) {
+    var paced = D.sessions.filter(function (s) { return s.scores; });
+    var vals = paced.map(function (s) { return s.scores.total; });
+    var pad = 4, lo = 4, hi = 8, left = 14, bottom = 16;
+    var xy = vals.map(function (v, i) {
+      return [r1(left + pad + i / (vals.length - 1) * (W - left - pad * 2)), r1(pad + (hi - v) / (hi - lo) * (Hh - bottom - pad * 2))];
+    });
+    var s = '<svg class="chart" width="' + W + '" height="' + Hh + '" role="img" aria-label="Paced Total Breath Score, ' +
+      vals.map(H.formatScore).join(', ') + '">';
+    [8, 6, 4].forEach(function (g) {
+      var y = r1(pad + (hi - g) / (hi - lo) * (Hh - bottom - pad * 2));
+      s += '<line class="gridd" x1="' + left + '" x2="' + W + '" y1="' + y + '" y2="' + y + '"/><text x="0" y="' + (y + 4) + '">' + g + '</text>';
+    });
+    s += '<path d="' + B.linePath(xy) + '" fill="none" stroke="var(--c-ink)" stroke-width="2" stroke-linejoin="round"/>';
+    xy.forEach(function (p, i) {
+      var last = i === xy.length - 1;
+      s += '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="' + (last ? 4 : 3) + '" fill="' + (last ? 'var(--c-ink)' : 'var(--c-pane)') +
+        '" stroke="var(--c-ink)" stroke-width="1.5"/>';
+    });
+    s += '<text x="' + (left + pad) + '" y="' + (Hh - 2) + '">' + B.fmtDate(paced[0].date) + '</text>';
+    s += '<text x="' + (W - pad) + '" y="' + (Hh - 2) + '" text-anchor="end">' + B.fmtDate(paced[paced.length - 1].date) + '</text>';
+    return s + '</svg>';
+  }
+  function openTrend(W, Hh) {
+    var open = D.sessions.filter(function (s) { return s.open; });
+    var bottom = 16, top = 4, bw = 14, gap = (W - bw * open.length) / (open.length + 1);
+    var s = '<svg class="chart" width="' + W + '" height="' + Hh + '" role="img" aria-label="Open sessions, percent of time in normal range: ' +
+      open.map(function (o) { return o.open.inRange + '%'; }).join(', ') + '">';
+    s += '<line x1="0" x2="' + W + '" y1="' + (Hh - bottom) + '" y2="' + (Hh - bottom) + '" stroke="var(--c-rule)"/>';
+    open.forEach(function (o, i) {
+      var h = (o.open.inRange / 100) * (Hh - bottom - top), x = r1(gap + i * (bw + gap)), last = i === open.length - 1;
+      s += '<rect x="' + x + '" y="' + r1(Hh - bottom - h) + '" width="' + bw + '" height="' + r1(h) + '" rx="2" fill="' +
+        (last ? 'var(--c-ink)' : '#B7BEC6') + '"/>';
+    });
+    s += '<text x="0" y="' + (Hh - 2) + '">' + B.fmtDate(open[0].date) + '</text>';
+    s += '<text x="' + W + '" y="' + (Hh - 2) + '" text-anchor="end">' + B.fmtDate(open[open.length - 1].date) + '</text>';
+    return s + '</svg>';
+  }
+
+  // per-breath deviation against the pacer: peaks at 10k+5 s, troughs at 10k+10 s
+  var CYCLES = (function () {
+    var u = P.userWave, out = [];
+    for (var k = 0; k < P.duration / 10; k++) {
+      var pk = 10 * k + 5, tr = 10 * k + 10, mi = 0, mx = -99, ni = 0, mn = 99, i;
+      for (i = Math.round((pk - 2.5) * HZ); i <= Math.round((pk + 2.5) * HZ); i++) if (u[i] > mx) { mx = u[i]; mi = i; }
+      for (i = Math.round((tr - 2.5) * HZ); i <= Math.min(u.length - 1, Math.round((tr + 2.5) * HZ)); i++) if (u[i] < mn) { mn = u[i]; ni = i; }
+      out.push({ n: k + 1, pk: pk, tr: tr, inLag: r1(mi / HZ - pk), outLag: r1(ni / HZ - tr),
+        inDepth: Math.round((mx - 3) / 3 * 100), outDepth: Math.round((-mn - 3) / 3 * 100) });
+    }
+    return out;
+  })();
+
+  /** Deviation strip aligned with a waveSVG box (same pad.l / pad.r). */
+  function devStrip(W, t0, t1, padL, padR, laneH) {
+    laneH = laneH || 26;
+    var w = W - padL - padR, Hh = laneH * 2 + 6;
+    function X(t) { return r1(padL + (t - t0) / (t1 - t0) * w); }
+    var s = '<svg class="chart" width="' + W + '" height="' + Hh + '" role="img" aria-label="Per-breath deviation from the pacer: timing and depth, inhale and exhale">';
+    [['Timing', 0, 0.6, 'inLag', 'outLag'], ['Depth', laneH + 6, 30, 'inDepth', 'outDepth']].forEach(function (lane) {
+      var y0 = lane[1], mid = y0 + laneH / 2, half = laneH / 2 - 2;
+      s += '<line class="grid" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + mid + '" y2="' + mid + '"/>';
+      s += '<text class="lane-lbl" x="' + (padL - 6) + '" y="' + (mid + 4) + '" text-anchor="end">' + lane[0] + '</text>';
+      CYCLES.forEach(function (c) {
+        [['in', c.pk, c[lane[3]]], ['out', c.tr, c[lane[4]]]].forEach(function (b) {
+          if (b[1] < t0 || b[1] > t1) return;
+          var v = Math.max(-lane[2], Math.min(lane[2], b[2])), h = Math.max(1.5, Math.abs(v) / lane[2] * half);
+          var y = v >= 0 ? mid - h : mid;
+          s += '<rect x="' + r1(X(b[1]) - 3) + '" y="' + r1(y) + '" width="6" height="' + r1(h) + '" rx="1" fill="var(--c-' + b[0] + ')"/>';
+        });
+      });
+    });
+    return s + '</svg>';
+  }
+
+  /** Whole-session overview with the zoom window marked. */
+  function overview(W, Hh, t0, t1, padL, padR) {
+    var box = { x: padL, y: 3, w: W - padL - padR, h: Hh - 6 }, ci = uid('oi'), co = uid('oo'), mid = box.y + box.h / 2;
+    var xy = B.toXY(B.slice(P.userWave, HZ, 0, P.duration, 500), box, 0, P.duration, 4);
+    var d = B.linePath(xy), x0 = r1(box.x + t0 / P.duration * box.w), x1 = r1(box.x + t1 / P.duration * box.w);
+    var s = '<svg class="chart" width="' + W + '" height="' + Hh + '" role="img" aria-label="Whole session overview; the frame marks the part shown above">';
+    s += '<defs><clipPath id="' + ci + '"><rect x="0" y="0" width="' + W + '" height="' + mid + '"/></clipPath><clipPath id="' + co +
+      '"><rect x="0" y="' + mid + '" width="' + W + '" height="' + Hh + '"/></clipPath></defs>';
+    s += '<rect x="' + box.x + '" y="0" width="' + box.w + '" height="' + Hh + '" rx="3" fill="var(--c-well)"/>';
+    s += '<path d="' + d + '" fill="none" stroke="var(--c-in)" stroke-width="1" clip-path="url(#' + ci + ')"/>';
+    s += '<path d="' + d + '" fill="none" stroke="var(--c-out)" stroke-width="1" clip-path="url(#' + co + ')"/>';
+    s += '<rect class="ovl-dim" x="' + box.x + '" y="0" width="' + (x0 - box.x) + '" height="' + Hh + '"/>';
+    s += '<rect class="ovl-dim" x="' + x1 + '" y="0" width="' + (box.x + box.w - x1) + '" height="' + Hh + '"/>';
+    s += '<rect class="ovl-win" x="' + x0 + '" y="1" width="' + (x1 - x0) + '" height="' + (Hh - 2) + '" rx="3"/>';
+    s += '<text x="' + (padL - 6) + '" y="' + (Hh / 2 + 4) + '" text-anchor="end">0:00</text>';
+    s += '<text x="' + (W - padR + 6) + '" y="' + (Hh / 2 + 4) + '">' + B.fmtClock(P.duration) + '</text>';
+    return s + '</svg>';
+  }
+
+  function zoomChips(selected, more) {
+    return '<div class="seg" role="group" aria-label="Time axis">' + D.timeAxis.concat(more ? ['More'] : []).map(function (c) {
+      return '<button type="button" aria-pressed="' + (c === selected) + '">' + c + '</button>';
+    }).join('') + '</div>';
+  }
+  function waveLegend(short) {
+    if (short) return '<div class="legend"><span>' + arrow('in') + 'In</span><span>' + arrow('out') + 'Out</span><span><i class="sw-pacer"></i>Pacer</span></div>';
+    return '<div class="legend"><span><i class="sw-line" style="border-color:var(--c-in)"></i>' + arrow('in') + 'Inhale, above</span>' +
+      '<span><i class="sw-line" style="border-color:var(--c-out)"></i>' + arrow('out') + 'Exhale, below</span>' +
+      '<span><i class="sw-pacer"></i>Pacer</span></div>';
+  }
+  function scaleStrip(hits) {
+    var cells = '';
+    for (var s = 10; s >= 1; s--) cells += '<i class="' + (hits.indexOf(s) >= 0 ? 'hit' : '') + '">' + s + '</i>';
+    return '<div class="scale" aria-hidden="true">' + cells + '</div><div class="scale-ends label"><span>Within 10% of the pacer</span><span>90% or more off, or beyond 1 SD</span></div>';
+  }
+  function scoreTable(withSmooth) {
+    var s = P.scores;
+    var rows = [['Timing', s.timing], ['Depth', s.depth]];
+    var h = '<table class="sc"><thead><tr><th></th><th class="num">' + dirHead('in') + '</th><th class="num">' + dirHead('out') + '</th></tr></thead><tbody>';
+    rows.forEach(function (r) { h += '<tr><td>' + r[0] + '</td><td class="num">' + score(r[1].inhale) + '</td><td class="num">' + score(r[1].exhale) + '</td></tr>'; });
+    if (withSmooth) h += '<tr class="secondary"><td>Smoothness</td><td class="num">' + score(s.smoothness.inhale) + '</td><td class="num">' + score(s.smoothness.exhale) + '</td></tr>';
+    return h + '</tbody></table>';
+  }
+
+  // ================================================================ Screen 1: home
+  function home() {
+    var s = P.scores, delta = r1(s.total - P.previousTotal);
+    var rows = newest.slice(0, 3).map(function (x) {
+      return '<tr><td>' + B.fmtDate(x.date) + '</td><td>' + sessionName(x) + ' · ' + B.fmtClock(x.duration) + '</td><td class="num">' + sessionResult(x, true) + '</td></tr>';
+    }).join('');
+    var inner =
+      '<header class="appbar"><div class="appbar-row">' + B.mark(28, 'solid') +
+        '<div class="appbar-title"><b>Good morning, ' + D.user.firstName + '</b><span>' + D.today.label.replace('Monday', 'Mon') + ' · ' + D.user.skillLevel + ' · ' + D.user.coach + '</span></div>' +
+      '</div>' + deviceStrip() + '</header>' +
+      '<div class="body">' +
+        '<section class="pane pane-pad" aria-label="Latest session">' +
+          '<div class="latest-top"><div><div class="pane-h"><h2>Latest · ' + P.pacerLabel + '</h2></div>' +
+            '<div class="label" style="margin-top:3px">' + P.dateLabel.replace(' 2026', '') + ' · ' + P.time + ' · ' + P.durationLabel + '</div></div>' +
+            '<div class="total"><span class="n">' + H.formatScore(s.total) + '</span><span class="w"><i class="dot dot-' + band(s.total) + '"></i>' + H.scoreWord(s.total).word + '</span>' +
+            '<span class="d">+' + delta + ' vs ' + B.fmtDate('2026-11-05') + '</span></div></div>' +
+          '<table class="mini" style="margin-top:6px"><thead><tr><th></th><th class="num">' + dirHead('in') + '</th><th class="num">' + dirHead('out') + '</th></tr></thead><tbody>' +
+            '<tr><td>Timing</td><td class="num">' + score(s.timing.inhale) + '</td><td class="num">' + score(s.timing.exhale) + '</td></tr>' +
+            '<tr><td>Depth</td><td class="num">' + score(s.depth.inhale) + '</td><td class="num">' + score(s.depth.exhale) + '</td></tr>' +
+          '</tbody></table>' +
+          '<a class="link" href="#" style="min-height:36px;margin-bottom:-8px">' + I('info', 18) + 'How scores work</a>' +
+        '</section>' +
+        '<section class="pane pane-pad trend" aria-label="Trend">' +
+          '<div><div class="t-h"><b>Paced total</b><span>6 sessions</span></div>' + pacedTrend(204, 70) + '</div>' +
+          '<div><div class="t-h"><b>Open</b><span>% in range</span></div>' + openTrend(128, 70) + '</div>' +
+        '</section>' +
+        '<div class="quick">' +
+          '<button class="btn" type="button">' + I('lungs', 20) + '<span class="stack">Open session<small>Manual · markers</small></span></button>' +
+          '<button class="btn btn-primary" type="button">' + I('play', 20) + '<span class="stack">Paced 5-5<small>Timed · 5 min</small></span></button>' +
+        '</div>' +
+        '<section class="pane" style="padding:10px 12px 0" aria-label="Recent sessions">' +
+          '<div class="pane-h"><h2>Recent sessions</h2><a class="link" href="#" style="min-height:24px;font-size:13px">View all ' + D.sessions.length + '</a></div>' +
+          '<table class="sessions" style="margin-top:4px"><thead><tr><th>Date</th><th>Session</th><th class="num">Result</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+        '</section>' +
+      '</div>' + tabbar('Today');
+    return figure('home', 'Home dashboard', inner);
+  }
+
+  // ================================================================ Screen 2: locked
+  function tensionGauge(W) {
+    var T = D.calibration.tension, Hh = 74, x0 = 6, w = W - 12, ty = 26, th = 12;
+    function X(v) { return r1(x0 + v * w); }
+    var s = '<svg class="chart gauge" width="' + W + '" height="' + Hh + '" role="img" aria-label="Strap tension gauge: in range">';
+    s += '<rect x="' + x0 + '" y="' + ty + '" width="' + w + '" height="' + th + '" rx="2" fill="var(--c-well)" stroke="var(--c-rule)"/>';
+    s += '<rect x="' + X(T.rangeLow) + '" y="' + (ty - 6) + '" width="' + r1((T.rangeHigh - T.rangeLow) * w) + '" height="' + (th + 12) +
+      '" rx="2" fill="var(--c-ok-tint)" stroke="var(--c-ok)" stroke-width="1.5"/>';
+    s += '<rect x="' + x0 + '" y="' + (ty + 3) + '" width="' + r1(T.value * w) + '" height="' + (th - 6) + '" rx="1" fill="var(--c-ok)"/>';
+    for (var i = 0; i <= 20; i++) {
+      var v = i / 20, major = i % 5 === 0;
+      s += '<line x1="' + X(v) + '" x2="' + X(v) + '" y1="' + (ty + th + 2) + '" y2="' + (ty + th + (major ? 9 : 5)) + '" stroke="var(--c-ink-2)" stroke-width="1"/>';
+    }
+    var nx = X(T.value);
+    s += '<path d="M' + (nx - 6) + ' 6h12l-6 9Z" fill="var(--c-ok-strong)"/><line x1="' + nx + '" x2="' + nx + '" y1="14" y2="' + (ty + th + 4) + '" stroke="var(--c-ok-strong)" stroke-width="2"/>';
+    s += '<text class="zone-lbl" x="' + X(T.rangeLow / 2) + '" y="' + (Hh - 2) + '" text-anchor="middle">Too loose</text>';
+    s += '<text class="zone-lbl on" x="' + X((T.rangeLow + T.rangeHigh) / 2) + '" y="' + (Hh - 2) + '" text-anchor="middle">In range</text>';
+    s += '<text class="zone-lbl" x="' + X((T.rangeHigh + 1) / 2) + '" y="' + (Hh - 2) + '" text-anchor="middle">Too tight</text>';
+    return s + '</svg>';
+  }
+  function balloonHint() {
+    // the pre-calibration picture: maximal breaths = 100 %, 6 % reference band around the midline
+    var W = 96, Hh = 56, s = '<svg width="' + W + '" height="' + Hh + '" viewBox="0 0 96 56" aria-hidden="true">', d = '', cin = uid('bi'), cout = uid('bo');
+    for (var x = 0; x <= 96; x += 2) d += (x ? 'L' : 'M') + x + ' ' + r1(28 - 24 * Math.sin((x / 96) * Math.PI * 4 - Math.PI / 2) * -1);
+    s += '<defs><clipPath id="' + cin + '"><rect width="96" height="28"/></clipPath><clipPath id="' + cout + '"><rect y="28" width="96" height="28"/></clipPath></defs>';
+    s += '<rect x="0" y="25" width="96" height="6" fill="var(--c-rule)"/>';
+    s += '<line x1="0" x2="96" y1="28" y2="28" stroke="var(--c-ink-2)" stroke-dasharray="3 3"/>';
+    s += '<path d="' + d + '" fill="none" stroke="var(--c-in)" stroke-width="1.75" clip-path="url(#' + cin + ')"/>';
+    s += '<path d="' + d + '" fill="none" stroke="var(--c-out)" stroke-width="1.75" clip-path="url(#' + cout + ')"/>';
+    return s + '</svg>';
+  }
+  function locked() {
+    var T = D.calibration.tension;
+    var bg =
+      '<div class="locked-bg" style="display:flex;flex-direction:column;height:100%">' +
+      '<header class="appbar"><div class="appbar-row">' + B.mark(28, 'solid') +
+        '<div class="appbar-title"><b>Welcome, ' + D.user.firstName + '</b><span>Calibrate your strap to unlock BreathBand®</span></div></div>' +
+        '<div class="strip"><div><i class="ok"></i>' + I('bluetooth', 16) + '<span>Strap paired · ' + D.device.battery + '%</span></div><div>' + I('cloud', 16) + '<span>BreathCloud ready</span></div></div>' +
+      '</header>' +
+      '<div class="body">' +
+        '<section class="pane pane-pad"><div class="lockrow">' + I('lock', 16) + 'Latest session</div><div style="display:flex;justify-content:space-between;margin-top:10px"><span class="ph" style="width:150px"></span><span class="ph" style="width:44px;height:22px"></span></div>' +
+          '<div style="margin-top:12px"><span class="ph" style="width:100%"></span></div><div style="margin-top:8px"><span class="ph" style="width:70%"></span></div></section>' +
+        '<section class="pane pane-pad"><div class="lockrow">' + I('lock', 16) + 'Trend</div><div style="height:60px"></div></section>' +
+        '<div class="quick"><span class="btn">' + I('lock', 18) + 'Open session</span><span class="btn">' + I('lock', 18) + 'Paced</span></div>' +
+      '</div>' + tabbar('Today') + '</div>';
+    var sheet =
+      '<div class="scrim" aria-hidden="true"></div>' +
+      '<section class="sheet" role="dialog" aria-label="Strap setup">' +
+        '<div class="grabber"></div>' +
+        '<div class="pane-h"><h2>Set the strap tension</h2><span class="meta">Step 1 of 3</span></div>' +
+        '<ol class="steps" aria-label="Setup steps"><li aria-current="step">Strap tension</li><li>Balloon breaths</li><li>Ready</li></ol>' +
+        '<div class="gauge-box">' +
+          '<div class="gauge-status"><b>' + I('check', 20) + 'Tension in range</b><span>' + Math.round(T.value * 100) + '% · target ' + Math.round(T.rangeLow * 100) + '–' + Math.round(T.rangeHigh * 100) + '%</span></div>' +
+          tensionGauge(324) +
+        '</div>' +
+        '<ul class="steps-list">' +
+          '<li><span class="tick">' + I('check', 14) + '</span><span>Wrap the strap between your belly button and the bottom of your rib cage.</span></li>' +
+          '<li><span class="tick">' + I('check', 14) + '</span><span>Pull your stomach in and tighten until the gauge turns green.</span></li>' +
+          '<li><span class="tick todo">' + I('lock', 13) + '</span><span><b style="font-weight:600">Lock the clip</b>, then continue.</span></li>' +
+        '</ul>' +
+        '<div class="next">' + balloonHint() + '<div><b>Next: balloon breaths</b><p>Imagine your belly is a balloon: three deep breaths set your 100%.</p></div></div>' +
+        '<button class="btn btn-ok" type="button" style="width:100%;min-height:52px">Continue to pre-calibration' + I('chevronRight', 20) + '</button>' +
+      '</section>';
+    return figure('locked', 'First run: locked dashboard + strap tension', bg + sheet, { cls: '' });
+  }
+
+  // ================================================================ Screen 3: live
+  function liveChart(W, Hh) {
+    var L = B.liveState(), t0 = L.t - 16, t1 = L.t + 6, pad = { l: 34, r: 8, t: 8, b: 22 }, range = 4.4;
+    var box = { x: pad.l, y: pad.t, w: W - pad.l - pad.r, h: Hh - pad.t - pad.b };
+    function X(t) { return r1(box.x + (t - t0) / (t1 - t0) * box.w); }
+    function Y(v) { return r1(box.y + box.h / 2 - v / range * box.h / 2); }
+    var mid = Y(0), ci = uid('li'), co = uid('lo'), nx = X(L.t);
+    var s = '<svg class="chart live-chart" width="' + W + '" height="' + Hh + '" role="img" aria-label="Line pacer: the grey line is the pacer, your line follows it. Now, breathing in.">';
+    s += '<defs><clipPath id="' + ci + '"><rect x="0" y="0" width="' + W + '" height="' + mid + '"/></clipPath><clipPath id="' + co + '"><rect x="0" y="' + mid + '" width="' + W + '" height="' + (Hh - mid) + '"/></clipPath></defs>';
+    s += '<rect class="band" x="' + box.x + '" y="' + Y(3) + '" width="' + box.w + '" height="' + r1(Y(-3) - Y(3)) + '"/>';
+    s += '<line class="band-edge" x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + Y(3) + '" y2="' + Y(3) + '"/>';
+    s += '<line class="band-edge" x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + Y(-3) + '" y2="' + Y(-3) + '"/>';
+    for (var g = Math.ceil(t0 / 5) * 5; g <= t1; g += 5) s += '<line class="grid" x1="' + X(g) + '" x2="' + X(g) + '" y1="' + box.y + '" y2="' + (box.y + box.h) + '"/>';
+    s += '<line x1="' + box.x + '" x2="' + (box.x + box.w) + '" y1="' + mid + '" y2="' + mid + '" stroke="var(--c-ink-2)" stroke-dasharray="4 4"/>';
+    s += '<text x="' + (box.x + 4) + '" y="' + (Y(3) - 5) + '">6% target depth</text>';
+    var past = B.toXY(B.slice(P.pacerWave, HZ, t0, L.t, 400), box, t0, t1, range);
+    var next = B.toXY(B.slice(P.pacerWave, HZ, L.t, t1, 200), box, t0, t1, range);
+    s += '<path class="p-past" d="' + B.smoothPath(past) + '" stroke-width="7"/>';
+    s += '<path class="p-next" d="' + B.smoothPath(next) + '" stroke-width="3.5"/>';
+    var user = B.smoothPath(B.toXY(B.slice(P.userWave, HZ, t0, L.t, 400), box, t0, t1, range));
+    s += '<path d="' + user + '" fill="none" stroke="var(--c-in)" stroke-width="2.5" clip-path="url(#' + ci + ')"/>';
+    s += '<path d="' + user + '" fill="none" stroke="var(--c-out)" stroke-width="2.5" clip-path="url(#' + co + ')"/>';
+    s += '<line class="now" x1="' + nx + '" x2="' + nx + '" y1="' + box.y + '" y2="' + (box.y + box.h) + '"/>';
+    s += '<circle cx="' + nx + '" cy="' + Y(L.pacer) + '" r="6" fill="var(--c-pane)" stroke="var(--c-pacer)" stroke-width="2"/>';
+    s += '<circle cx="' + nx + '" cy="' + Y(L.user) + '" r="4.5" fill="var(--c-ink)" stroke="var(--c-pane)" stroke-width="1.5"/>';
+    s += '<text class="bb-w-label" x="' + (pad.l - 6) + '" y="' + (box.y + 12) + '" text-anchor="end">IN</text>';
+    s += '<text class="bb-w-label" x="' + (pad.l - 6) + '" y="' + (box.y + box.h - 3) + '" text-anchor="end">OUT</text>';
+    [[-15, '−15 s'], [-10, '−10 s'], [-5, '−5 s'], [0, 'Now'], [5, '+5 s']].forEach(function (t) {
+      s += '<text class="' + (t[0] === 0 ? 'now-lbl' : '') + '" x="' + X(L.t + t[0]) + '" y="' + (Hh - 5) + '" text-anchor="middle">' + t[1] + '</text>';
+    });
+    return s + '</svg>';
+  }
+  function circleInset() {
+    var L = B.liveState(), c = 44, rMin = 12, rMax = 38;
+    var rp = r1(rMin + L.pacerSize * (rMax - rMin)), ru = r1(rMin + L.userSize * (rMax - rMin));
+    return '<svg width="88" height="88" viewBox="0 0 88 88" role="img" aria-label="Circle view: your circle is just inside the pacer ring">' +
+      '<circle cx="' + c + '" cy="' + c + '" r="' + rMax + '" fill="none" stroke="var(--c-rule)" stroke-dasharray="2 3"/>' +
+      '<circle cx="' + c + '" cy="' + c + '" r="' + ru + '" fill="var(--c-in-tint)" stroke="var(--c-in)" stroke-width="2"/>' +
+      '<circle cx="' + c + '" cy="' + c + '" r="' + rp + '" fill="none" stroke="var(--c-pacer)" stroke-width="3" opacity=".75"/>' +
+      '</svg>';
+  }
+  function live() {
+    var L = B.liveState(), ticks = '';
+    for (var m = 1; m < 5; m++) ticks += '<u style="left:' + (m * 20) + '%"></u>';
+    var inner =
+      '<header class="appbar"><div class="appbar-row">' +
+        '<div class="appbar-title"><b>' + P.pacerLabel + '</b><span>Breath ' + L.breathNumber + ' of ' + L.breathsTotal + ' · ' + P.mode + ' ' + P.durationLabel + ' · ' + P.skillLevel + '</span></div>' +
+        '<span class="cond" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--c-chrome-ink-2)"><i style="width:8px;height:8px;border-radius:50%;background:#4FC387;display:inline-block"></i>Recording</span>' +
+      '</div></header>' +
+      '<div class="body">' +
+        '<section class="pane pane-pad" aria-label="Timer">' +
+          '<div class="timer"><div><span class="label">Elapsed</span><span class="v">' + L.elapsed + '</span></div><div><span class="label">Remaining</span><span class="v">' + L.remaining + '</span></div></div>' +
+          '<div class="progress" role="progressbar" aria-valuenow="' + Math.round(L.progress * 100) + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + (L.progress * 100) + '%"></i>' + ticks + '</div>' +
+        '</section>' +
+        '<section class="pane pane-pad cue" aria-live="polite">' +
+          '<div><div class="cue-word">' + arrow('in', 22) + 'Breathe in</div>' +
+            '<div class="phase" aria-hidden="true"><i><b style="width:' + (L.phaseProgress * 100) + '%"></b></i><i></i></div>' +
+            '<div class="scale-ends label"><span>In · 5 s</span><span>Out · 5 s</span></div></div>' +
+          '<div class="inset" title="Circle view">' + circleInset() + '</div>' +
+        '</section>' +
+        '<div class="seg" role="group" aria-label="Pacer view"><button type="button" aria-pressed="true">Line pacer</button><button type="button" aria-pressed="false">Circle pacer</button></div>' +
+        '<section class="pane" style="padding:8px 4px 4px" aria-label="Line pacer">' + liveChart(356, 214) +
+          '<div class="legend" style="padding:2px 10px 6px"><span><i class="sw-pacer"></i>Pacer</span><span><i class="sw-line" style="border-color:var(--c-in)"></i>You, above midline</span><span><i class="sw-line" style="border-color:var(--c-out)"></i>below</span></div>' +
+        '</section>' +
+        '<section class="pane pane-pad sound" aria-label="Sound">' + '<span style="color:var(--c-action)">' + I('note', 24) + '</span>' +
+          '<div class="txt"><b>Musical notes on</b><span>High note at the top of each inhale, low note at the bottom</span></div><span class="toggle" role="switch" aria-checked="true" aria-label="Musical notes"></span>' +
+        '</section>' +
+        '<div class="controls"><button class="btn" type="button">' + I('pause', 20) + 'Pause</button><button class="btn btn-ink" type="button">' + I('stop', 18) + 'Stop and save</button></div>' +
+      '</div>';
+    return figure('live', 'Live paced session (5-5)', inner);
+  }
+
+  // ================================================================ Screen 4: review (phone)
+  function review() {
+    var s = P.scores, delta = r1(s.total - P.previousTotal), t0 = 120, t1 = 180, W = 340, padL = 44, padR = 8;
+    var wave = B.waveSVG({ samples: P.userWave, pacer: P.pacerWave, hz: HZ, t0: t0, t1: t1, width: W, height: 124,
+      pad: { l: padL, r: padR, t: 8, b: 20 }, range: 4, ticks: true, gridSeconds: 5, stroke: 2, pacerStroke: 6,
+      title: 'Your breathing against the pacer, 2:00 to 3:00. Inhale above the midline, exhale below.' });
+    var inner =
+      '<header class="appbar"><div class="appbar-row">' +
+        '<button class="iconbtn" type="button" aria-label="Back to History" style="margin-left:-12px">' + I('chevronLeft', 24) + '</button>' +
+        '<div class="appbar-title"><b>' + P.pacerLabel + ' · ' + P.dateLabel.replace(' 2026', '') + '</b><span>' + P.time + ' · ' + P.durationLabel + ' · ' + P.mode + ' · ' + P.skillLevel + ' tolerance</span></div>' +
+        '<button class="iconbtn" type="button" aria-label="Share">' + I('share', 22) + '</button>' +
+      '</div></header>' +
+      '<div class="body">' +
+        '<section class="pane pane-pad" aria-label="Scores">' +
+          '<div class="rv-score"><div class="hero"><span class="lbl">Total Breath Score</span><span class="n">' + H.formatScore(s.total) + '</span>' +
+            '<span class="w"><i class="dot dot-' + band(s.total) + '"></i>' + H.scoreWord(s.total).word + '</span><span class="d">+' + delta + ' vs ' + B.fmtDate('2026-11-05') + ' · out of 10</span></div>' +
+            scoreTable(true) + '</div>' +
+          '<div class="scale-row"><div class="pane-h"><span class="label">Score scale, closeness to the pacer</span><a class="link" href="#">' + I('info', 16) + 'How scores work</a></div>' + scaleStrip([8, 7]) + '</div>' +
+        '</section>' +
+        '<section class="pane pane-pad" aria-label="Session note"><div class="pane-h"><h2>Session note</h2><span class="meta">Visible to your coach</span></div><p class="note-txt clamp">' + P.note + '</p></section>' +
+        '<section class="pane" style="padding:10px 12px" aria-label="Waveform">' +
+          '<div class="pane-h" style="margin-bottom:8px;align-items:center"><h2>Breathing vs pacer</h2>' + waveLegend(true) + '</div>' +
+          zoomChips('60 s') +
+          '<div style="margin-top:10px">' + wave + '</div>' +
+          devStrip(W, t0, t1, padL, padR, 22) +
+          '<div style="margin-top:6px">' + overview(W, 26, t0, t1, padL, padR + 26) + '</div>' +
+        '</section>' +
+      '</div>' +
+      '<div class="actionbar"><button class="btn" type="button">' + I('pdf', 20) + 'Export PDF</button>' +
+        '<button class="btn btn-cloud" type="button">' + I('cloudCheck', 20) + '<span class="stack">BreathCloud<small>Synced ' + D.cloud.lastSync + '</small></span></button></div>';
+    return figure('review', 'Session review (paced)', inner);
+  }
+
+  // ================================================================ iPad review: the console
+  function reviewIpad() {
+    var s = P.scores, delta = r1(s.total - P.previousTotal), t0 = 120, t1 = 180, W = 804, padL = 52, padR = 10;
+    var wave = B.waveSVG({ samples: P.userWave, pacer: P.pacerWave, hz: HZ, t0: t0, t1: t1, width: W, height: 132,
+      pad: { l: padL, r: padR, t: 8, b: 22 }, range: 4, ticks: true, gridSeconds: 5, stroke: 2.25, pacerStroke: 8,
+      title: 'Your breathing against the pacer, 2:00 to 3:00. Inhale above the midline, exhale below.' });
+    var list = newest.map(function (x) {
+      var cur = x.id === P.id;
+      return '<li' + (cur ? ' aria-current="true"' : '') + '><span class="d">' + B.fmtDate(x.date, true) + '</span>' +
+        '<span class="t">' + sessionName(x) + ' · ' + B.fmtClock(x.duration) + ' · ' + x.time + '</span>' +
+        '<span class="r">' + (x.scores ? H.formatScore(x.scores.total) + '<small><i class="dot dot-' + band(x.scores.total) + '"></i>' + H.scoreWord(x.scores.total).word + '</small>'
+          : x.open.inRange + '%<small>in range · ' + x.open.rate + ' br/min</small>') + '</span></li>';
+    }).join('');
+    function sgn(v, unit) { return (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v) + unit; }
+    var inView = CYCLES.filter(function (c) { return c.pk >= t0 && c.pk <= t1; });
+    var brows = inView.map(function (c) {
+      return '<tr><td>' + c.n + '</td><td class="num">' + sgn(c.inLag, ' s') + '</td><td class="num">' + sgn(c.outLag, ' s') + '</td><td class="num">' +
+        sgn(c.inDepth, '%') + '</td><td class="num">' + sgn(c.outDepth, '%') + '</td></tr>';
+    }).join('');
+    var inner =
+      '<div class="ipad" style="height:100%">' +
+      '<header class="ip-top"><div class="ip-top-row">' +
+        '<div class="ip-brand">' + B.mark(26, 'solid') + 'BreathBand® <span>Console</span></div>' +
+        '<div class="ip-client"><span class="av">' + D.user.initials + '</span>' + D.user.name + '<small>' + D.user.skillLevel + '</small>' + I('chevronDown', 16) + '</div>' +
+        '<div class="ip-sync"><i class="ok"></i>BreathCloud synced ' + D.cloud.lastSync + '</div>' +
+        '<button class="btn" type="button">' + I('pdf', 18) + 'Export PDF</button>' +
+      '</div></header>' +
+      '<div class="ip-main">' +
+        '<aside class="ip-rail" aria-label="Sessions"><div class="ip-rail-h"><h2>Sessions <span>' + D.sessions.length + ' since ' + B.fmtDate(D.sessions[0].date) + '</span></h2>' +
+          '<div class="seg" role="group" aria-label="Filter"><button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Paced</button><button type="button" aria-pressed="false">Open</button></div></div>' +
+          '<ul class="ip-list">' + list + '</ul></aside>' +
+        '<div class="ip-body">' +
+          '<div class="ip-title"><h1>' + P.pacerLabel + ' · ' + P.dateLabel + '</h1><span>' + P.time + ' · ' + P.durationLabel + ' ' + P.mode.toLowerCase() + ' · ' + P.skillLevel + ' tolerance · ' + P.sound + '</span></div>' +
+          '<div class="ip-scores">' +
+            '<section class="pane hero" aria-label="Total"><span class="lbl">Total Breath Score</span><span class="n">' + H.formatScore(s.total) + '</span>' +
+              '<span class="w"><i class="dot dot-' + band(s.total) + '"></i>' + H.scoreWord(s.total).word + '</span><span class="d">+' + delta + ' vs ' + B.fmtDate('2026-11-05') + ' · mean of Timing and Depth</span></section>' +
+            '<section class="pane" aria-label="Scores">' + scoreTable(true) + '</section>' +
+            '<section class="pane" aria-label="How scores work"><div class="pane-h"><h2>How scores work</h2><span class="meta">1–10</span></div>' +
+              '<div style="margin-top:8px">' + scaleStrip([8, 7]) + '</div>' +
+              '<ul class="rules"><li><b>10</b> within 10% of the pacer, one point less for each further 10% off, down to <b>1</b>. Beyond one standard deviation: a flat <b>1</b>.</li></ul></section>' +
+          '</div>' +
+          '<section class="pane ip-wave" style="padding:12px 16px" aria-label="Waveform">' +
+            '<div class="pane-h"><h2>Breathing vs pacer · 2:00–3:00</h2>' + waveLegend() + zoomChips('60 s', true) + '</div>' +
+            wave + devStrip(W, t0, t1, padL, padR, 22) +
+            '<div style="margin-top:4px">' + overview(W, 26, t0, t1, padL, padR + 30) + '</div>' +
+          '</section>' +
+          '<div class="ip-low">' +
+            '<section class="pane" aria-label="Breaths in view"><div class="pane-h"><h2>Breaths in view</h2><span class="meta">vs pacer peak / trough</span></div>' +
+              '<table class="bt" style="margin-top:6px"><thead><tr><th>Breath</th><th class="num">' + dirHead('in') + ' timing</th><th class="num">' + dirHead('out') + ' timing</th><th class="num">' + dirHead('in') + ' depth</th><th class="num">' + dirHead('out') + ' depth</th></tr></thead><tbody>' + brows + '</tbody></table></section>' +
+            '<section class="pane" aria-label="Session note"><div class="pane-h"><h2>Session note</h2><span class="meta">' + D.user.firstName + '</span></div><p class="note-txt">' + P.note + '</p></section>' +
+            '<section class="pane" aria-label="Coach comment"><div class="pane-h"><h2>Coach comment</h2><span class="meta">' + D.user.coach.replace('Coach: ', '') + '</span></div>' +
+              '<div class="comment">Steady inhales. Next time let each exhale run the full 5 seconds before you breathe in</div>' +
+              '<div style="display:flex;justify-content:flex-end;margin-top:8px"><button class="btn btn-primary" type="button" style="min-height:40px">' + I('cloud', 18) + 'Send via BreathCloud</button></div></section>' +
+          '</div>' +
+        '</div>' +
+      '</div></div>';
+    return figure('review-ipad', 'iPad landscape: session review console', inner, { ipad: true, cls: '' , style: '--status-ink:#fff' });
+  }
+
+  // ================================================================ page
+  document.getElementById('pg-head').innerHTML =
+    '<div><h1>' + B.mark(30, 'solid') + DIR.name + '</h1><p>' + DIR.positioning + ' ' + DIR.why + '</p>' +
+    '<div class="pg-meta"><span class="pg-tag">Best for: ' + DIR.bestFor + '</span><span class="pg-tag">' + DIR.fonts.join(' + ') + '</span><span class="pg-tag">Radius 6 · 4/6/8/12/16 spacing · rules, no shadows</span><span class="pg-tag">Line pacer primary</span></div></div>' +
+    '<div class="pg-swatches">' + DIR.swatches.map(function (s) { return '<div class="pg-swatch"><i style="background:' + s.hex + '"></i><b>' + s.name + '</b>' + s.hex + '</div>'; }).join('') + '</div>';
+
+  var row = document.getElementById('row');
+  row.innerHTML = home() + locked() + live() + review() + reviewIpad();
+  B.initPage();
+})();
+</script>
+</body>
+</html>
